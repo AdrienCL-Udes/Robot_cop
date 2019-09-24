@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <LibRobus.h>
 
-//EQUIPE 1 ICI
+//EQUIPE 2 ICI
 
 void setup() {
   // put your setup code here, to run once:

@@ -21,67 +21,41 @@ void PID()
 
   int error = ENCODER_Read(1) - current_position;
   integral = integral + error;
-  int value_integral = integral;
   int error_value = error;
-  if(integral > 200)
-  {
-    value_integral = 200;
-  }
 
-  if(integral < -200)
-  {
-    value_integral = -200;
-  }
-
-  if(error > 200)
-  {
-    error_value = 200;
-  }
-
-  if(error < -200)
-  {
-    error_value = -200;
-  }
-
-  float adjustment = Pfactor * error_value + Ifactor * value_integral;
+  float adjustment = Pfactor * error_value + Ifactor * integral;
 
   current_speed = current_speed + adjustment;
 
-  if (current_speed < min_speed)
-  {
-    current_speed = min_speed;
-  }
-  if (current_speed > max_speed)
-  {
-    current_speed = max_speed;
-  }
-
   MOTOR_SetSpeed(0, current_speed);
-  Serial.print("integral: ");
-  Serial.println(integral);
-  Serial.print("adjustment: ");
-  Serial.println(adjustment);
-  Serial.print("current_speed: ");
-  Serial.println(current_speed);
-  Serial.print("current_position: ");
-  Serial.println(current_position);
-  Serial.print("error: ");
-  Serial.println(error);
-  Serial.println();
-  Serial.println();
+
+  if (current_position > 10000)
+  {
+    integral = 0;
+    MOTOR_SetSpeed(0, init_speed);
+  }
   delay(100);
 }
 
 void MOVE_forward(int distance)
 {
   //int runTime = getRuntime(distance);
+  int nbTour_10 = 1;
+  int nbCoche = 16000;
+  int tmpTour = 0;
   ENCODER_Reset(0);
   ENCODER_Reset(1);
   MOTOR_SetSpeed(0, init_speed);
   MOTOR_SetSpeed(1, init_speed);
-  while (ENCODER_Read(0) <= 32000)
+  while (nbTour_10 > tmpTour || ENCODER_Read(0) <= nbCoche)
   {
     PID();
+    if(ENCODER_Read(0) > 32000)
+    {
+      tmpTour = tmpTour + 1;
+      ENCODER_Reset(0);
+      ENCODER_Reset(1);
+    }
   }
   MOTOR_SetSpeed(0, 0);
   MOTOR_SetSpeed(1, 0);

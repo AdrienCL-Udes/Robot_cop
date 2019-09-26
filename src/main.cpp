@@ -1,58 +1,63 @@
 #include <Arduino.h>
 #include <LibRobus.h>
 #define MASTERSPEED 0.5
+#define ROTATION 3200.00
+int lastMaster = 0;
 
 float calc(int master, int slave)
 {
-  float diff = (master - slave)/float(master);
-  int percent;
+  float correction = MASTERSPEED;
+  float diff;
+  diff = (master - slave)/ROTATION;
+
   if(diff>=0)
   {
-    percent = 1 + diff;
+    correction += diff;
   }
   else
   {
-    percent = 1-diff;
+    correction -=diff;
   }
-  float correction = MASTERSPEED*percent;
+  
   return correction;
 
-}
-
-void PID()
-{
-  int wheelMaster = ENCODER_Read(1);
-  int wheelSlave = ENCODER_Read(0);
-  float correct = calc(wheelMaster,wheelSlave);
-  MOTOR_SetSpeed(1,MASTERSPEED);
-  MOTOR_SetSpeed(0,correct);
-}
-
-void reset()
-{
-  ENCODER_Reset(0);
-  ENCODER_Reset(1);
-  MOTOR_SetSpeed(1,MASTERSPEED);
-  MOTOR_SetSpeed(0,MASTERSPEED);
 }
 
 void WriteEncodeur()
 {
   Serial.print("left wheel: ");
-  Serial.print(ENCODER_Read(0)+"\n");
+  Serial.print(ENCODER_Read(0));
+  Serial.println();
   Serial.print("Right wheel: ");
-  Serial.print(ENCODER_Read(1)+"\n");
+  Serial.print(ENCODER_Read(1));
+  Serial.println();
+  Serial.println();
+  delay(50);
+}
+
+void PID()
+{
+  
+  lastMaster = ENCODER_Read(1);
+  int wheelSlave = ENCODER_Read(0);
+  float correct = calc(lastMaster,wheelSlave);
+  Serial.print("slave speed: ");
+  Serial.println(correct);
+  MOTOR_SetSpeed(1,MASTERSPEED);
+  MOTOR_SetSpeed(0,correct);
 }
 
 void setup() 
 {
-  reset();
   BoardInit();
 }
 
 void loop()
 {
-  PID();
-  WriteEncodeur();  
+  PID(); 
+  if(lastMaster == 0 || lastMaster != ENCODER_Read(1))
+  {
+    WriteEncodeur();
+  }
   
 }

@@ -3,12 +3,30 @@
 
 //EQUIPE 2 ICI
 
+int calculerNbTour(int angle, int rayonRoue, int rayonArc);
+void tourner(int angle);
+
 void setup() {
   // put your setup code here, to run once:
+  BoardInit();
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
+  if(ROBUS_IsBumper(0)) {
+      tourner(45);
+      delay(1000);
+
+      tourner(-90);
+      delay(1000);
+
+      tourner(90);
+      delay(1000);
+
+      tourner(-45);
+      delay(1000);
+  }
+  
 }
 
 //Calcule le nombre de tour que de doit faire la roue selon les paramètres reçu par la fonction
@@ -22,44 +40,27 @@ int calculerNbTour(int angle, int rayonRoue, int rayonArc) {
 
 //Angle entre -90 et 90
 void tourner(int angle) {
-  
-  calculerNbTour(angle, 1.5, 8);
+  int roue, encodeurAvant, tourEncodeur = 0, tour;
 
-  
-
-  //Robot tourne de 90 degrés vers la gauche
-  if(angle == -90){
-    MOTOR_SetSpeed(1, 0.6);
-
-    delay(300);
-
-    MOTOR_SetSpeed(1,0);
-
-  //Robot tourne de 45 degrés vers la gauche
-  }else if (angle == -45) {
-    MOTOR_SetSpeed(1, 0.6);
-
-    delay(150);
-
-    MOTOR_SetSpeed(1,0);
-
-  //Robot tourne de 45 degrés vers la droite
-  } else if(angle == 45) {
-    MOTOR_SetSpeed(0, 0.6);
-
-    delay(150);
-
-    MOTOR_SetSpeed(0,0);
-
-  //Robot tourne de 90 degrés vers la droite
-  } else if(angle == 90) {
-    MOTOR_SetSpeed(0, 0.6);
-
-    delay(300);
-
-    MOTOR_SetSpeed(0,0);
+  if(angle < 0) {
+    roue = 1;
+    encodeurAvant = ENCODER_Read(roue);
   } else {
-    Serial.println("L'angle choisi ne fait pas partie des choix possibles");
+    roue = 0;
+    encodeurAvant = ENCODER_Read(roue);
   }
-  
+  tour = calculerNbTour(angle, 1.5, 8);
+
+  MOTOR_SetSpeed(roue, 0.6);
+
+  while (tourEncodeur < tour * 0.25 || tourEncodeur > tour * 1.75 ) {
+    tourEncodeur = (ENCODER_Read(roue) - encodeurAvant)/3600;
+
+    if(ROBUS_IsBumper(1)) {
+      MOTOR_SetSpeed(roue, 0);
+    }
+  }
+
+  MOTOR_SetSpeed(roue, 0);
 }
+

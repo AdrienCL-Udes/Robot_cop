@@ -3,16 +3,14 @@
 
 //EQUIPE 2 ICI
 // Constant use for tuning PID
-const float Pfactor = 0.00005;
+const float Pfactor = 0.0002;
 const float Ifactor = 0.00001;
 
 // Init varaible for motor control
 int integral = 0;
 const float init_speed = 0.6;
-const float min_speed = 0.5;
-const float max_speed = 0.7;
-const float min_adjust = -0.04;
-const float max_adjust = 0.04;
+const float min_speed = 0.53;
+const float max_speed = 0.67;
 float current_speed = init_speed;
 
 // This fonction will adjuste the speed of motor 0
@@ -24,17 +22,28 @@ void PID()
   int error = ENCODER_Read(1) - current_position;
   integral = integral + error;
   int value_integral = integral;
-
-  float adjustment = Pfactor * error + Ifactor * value_integral;
-
-  if (adjustment < min_adjust)
+  int error_value = error;
+  if(integral > 200)
   {
-    adjustment = min_adjust;
+    value_integral = 200;
   }
-  if (adjustment > max_adjust)
+
+  if(integral < -200)
   {
-    adjustment = max_adjust;
+    value_integral = -200;
   }
+
+  if(error > 200)
+  {
+    error_value = 200;
+  }
+
+  if(error < -200)
+  {
+    error_value = -200;
+  }
+
+  float adjustment = Pfactor * error_value + Ifactor * value_integral;
 
   current_speed = current_speed + adjustment;
 

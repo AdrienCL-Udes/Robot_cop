@@ -3,8 +3,8 @@
 
 //EQUIPE 2 ICI
 
-int calculerNbTour(int angle, int rayonRoue, int rayonArc);
-void tourner(int angle);
+float calculerNbPulse(int angle, float rayonRoue, float rayonArc);
+void tourner(int angle, int roue);
 
 void setup() {
   // put your setup code here, to run once:
@@ -14,47 +14,42 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
   if(ROBUS_IsBumper(0)) {
-      tourner(45);
+      tourner(45, 0);
       delay(1000);
 
-      tourner(-90);
+      tourner(90, 0);
       delay(1000);
 
-      tourner(90);
+      tourner(45, 1);
       delay(1000);
 
-      tourner(-45);
+      tourner(90, 1);
       delay(1000);
   }
   
 }
 
 //Calcule le nombre de tour que de doit faire la roue selon les paramètres reçu par la fonction
-int calculerNbTour(int angle, int rayonRoue, int rayonArc) {
-  int nbTour;
+float calculerNbPulse(int angle, float rayonRoue, float rayonArc) {
+  float nbPulse;
 
-  nbTour = rayonArc * angle / (rayonRoue* 360);
+  nbPulse =  (rayonArc * angle*3200)/(360*rayonRoue);
+  
 
-  return nbTour;
+  return nbPulse;
 }
 
-//Angle entre -90 et 90
-void tourner(int angle) {
-  int roue, encodeurAvant, tourEncodeur = 0, tour;
-
-  if(angle < 0) {
-    roue = 1;
-    encodeurAvant = ENCODER_Read(roue);
-  } else {
-    roue = 0;
-    encodeurAvant = ENCODER_Read(roue);
-  }
-  tour = calculerNbTour(angle, 1.5, 8);
+//Angle entre 0 et 90
+void tourner(int angle, int roue) {
+  int pulseEncodeur = 0, pulse;
+  ENCODER_Reset(roue);
+  
+  pulse = calculerNbPulse(angle, 1.5, 8);
 
   MOTOR_SetSpeed(roue, 0.6);
 
-  while (tourEncodeur < tour * 0.25 || tourEncodeur > tour * 1.75 ) {
-    tourEncodeur = (ENCODER_Read(roue) - encodeurAvant)/3600;
+  while (pulseEncodeur <= pulse-2) {
+    pulseEncodeur = ENCODER_Read(roue);
 
     if(ROBUS_IsBumper(1)) {
       MOTOR_SetSpeed(roue, 0);

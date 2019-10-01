@@ -29,26 +29,27 @@ void loop() {
   
 }
 
-//Calcule le nombre de tour que de doit faire la roue selon les paramètres reçu par la fonction
+//Calcule le nombre de pulse que doit faire la roue selon les paramètres reçus par la fonction
+//rayonRoue et rayonArc sont en cm et angle est en degrès
 float calculerNbPulse(int angle, float rayonRoue, float rayonArc) {
   float nbPulse;
 
   nbPulse =  (rayonArc * angle*3200)/(360*rayonRoue);
   
-
   return nbPulse;
 }
 
-//Angle entre 0 et 90
+//Quand roue = 0, le robot tourne vers la droite
+//Quand roue = 1, le robot tourne vers la gauche
 void tourner(int angle, int roue) {
   int pulseEncodeur = 0, pulse;
   ENCODER_Reset(roue);
   
-  pulse = calculerNbPulse(angle, 1.5, 8);
+  pulse = calculerNbPulse(angle, 7.65/2 , 19.3);
 
   MOTOR_SetSpeed(roue, 0.6);
 
-  while (pulseEncodeur <= pulse-2) {
+  while (pulseEncodeur <= pulse) {
     pulseEncodeur = ENCODER_Read(roue);
 
     if(ROBUS_IsBumper(1)) {

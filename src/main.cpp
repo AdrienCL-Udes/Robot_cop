@@ -6,6 +6,7 @@
 #define TICK_CM 133.7233
 int lastMaster = 0;
 //dhfuewhduifhuhfushufhdutest doom
+<<<<<<< HEAD
 
 void PID();
 
@@ -81,6 +82,8 @@ void turn(int direction)
   }
 }
 
+=======
+>>>>>>> equipe_1
 float calc(int master, int slave)
 {
   float correction = MASTERSPEED;

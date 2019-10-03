@@ -1,22 +1,99 @@
 #include <Arduino.h>
 #include <LibRobus.h>
-#define MASTERSPEED 0.5
+#define MASTERSPEED 0.3
 #define ROTATION 3200.00
+#define WHEEL_SIZE 7.62
+#define TICK_CM 133.7233
 int lastMaster = 0;
-//test doom
+//dhfuewhduifhuhfushufhdutest doom
+
+void PID();
+
+void forward(float cm)
+{
+  bool end = false;
+  while(end == false)
+  {
+    PID();
+    if(ENCODER_Read(1) >= (TICK_CM * cm))
+    {
+      end = true;
+      MOTOR_SetSpeed(0,0);
+      MOTOR_SetSpeed(1,0);
+      ENCODER_Reset(0);
+      ENCODER_Reset(1);
+    }
+  }
+}
+
+void turn(int direction)
+{
+  bool end = false;
+  switch (direction)
+  {
+  case 45:
+    MOTOR_SetSpeed(0,0.2);
+    while(end == false) {
+      if(ENCODER_Read(0) >= 133.673443*15)
+      {
+        end = true;
+        MOTOR_SetSpeed(0,0);
+        ENCODER_Reset(0);
+      }
+    }
+    break; 
+  case 90:
+    MOTOR_SetSpeed(0,0.2);
+    while(end == false) {
+      if(ENCODER_Read(0) >= 133.673443*30)
+      {
+        end = true;
+        MOTOR_SetSpeed(0,0);
+        ENCODER_Reset(0);
+      }
+    }
+    break;
+  case -45:
+    MOTOR_SetSpeed(1,0.2);
+    while(end == false) {
+      if(ENCODER_Read(1) >= 133.673443*15)
+      {
+        end = true;
+        MOTOR_SetSpeed(1,0);
+        ENCODER_Reset(1);
+      }
+    }
+    break;
+  case -90:
+    MOTOR_SetSpeed(1,0.2);
+    while(end == false) {
+      if(ENCODER_Read(1) >= 133.673443*30)
+      {
+        end = true;
+        MOTOR_SetSpeed(1,0);
+        ENCODER_Reset(1);
+      }
+    }
+    break;
+  
+  default:
+    break;
+  }
+}
+
 float calc(int master, int slave)
 {
   float correction = MASTERSPEED;
   float diff;
-  diff = (master - slave)/ROTATION;
+  diff = (slave - master)/ROTATION;
 
   if(diff>=0)
   {
-    correction += diff;
+    correction = correction * (1.00 + diff);
   }
   else
   {
-    correction -=diff;
+    correction = correction * (1.00 - diff);
   }
   
   return correction;
@@ -54,10 +131,16 @@ void setup()
 
 void loop()
 {
-  PID(); 
   if(lastMaster == 0 || lastMaster != ENCODER_Read(1))
   {
     WriteEncodeur();
+  }
+  if(ROBUS_IsBumper(3))
+  {
+    forward(90);
+    turn(90);
+    forward(50);
+    turn(-90);
   }
   
 }

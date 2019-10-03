@@ -6,16 +6,43 @@
 const float Pfactor = 0.0002;
 const float Ifactor = 0.00001;
 
-float calculerNbPulse(int angle, float rayonRoue, float rayonArc);
-void tourner(int angle, int roue);
-
-void setup() {
 // Init varaible for motor control
 int integral = 0;
 const float init_speed = 0.6;
 const float min_speed = 0.53;
 const float max_speed = 0.67;
 float current_speed = init_speed;
+
+//Calcule le nombre de pulse que doit faire la roue selon les paramètres reçus par la fonction
+//rayonRoue et rayonArc sont en cm et angle est en degrès
+float calculerNbPulse(int angle, float rayonRoue, float rayonArc) {
+  float nbPulse;
+
+  nbPulse =  (rayonArc * angle*3200)/(360*rayonRoue);
+  
+  return nbPulse;
+}
+
+//Quand roue = 0, le robot tourne vers la droite
+//Quand roue = 1, le robot tourne vers la gauche
+void tourner(int angle, int roue) {
+  int pulseEncodeur = 0, pulse;
+  ENCODER_Reset(roue);
+  
+  pulse = calculerNbPulse(angle, 7.65/2 , 19.3);
+
+  MOTOR_SetSpeed(roue, 0.6);
+
+  while (pulseEncodeur <= pulse) {
+    pulseEncodeur = ENCODER_Read(roue);
+
+    if(ROBUS_IsBumper(1)) {
+      MOTOR_SetSpeed(roue, 0);
+    }
+  }
+
+  MOTOR_SetSpeed(roue, 0);
+}
 
 // This fonction will adjuste the speed of motor 0
 // to match motor 1
@@ -83,8 +110,7 @@ void loop()
       integral = 0;
       current_speed = init_speed;
     }
-  }
-  if(ROBUS_IsBumper(0)) {
+    else if(ROBUS_IsBumper(0)) {
       tourner(45, 0);
       delay(1000);
 
@@ -96,38 +122,6 @@ void loop()
 
       tourner(90, 1);
       delay(1000);
-  }
-  
-}
-
-//Calcule le nombre de pulse que doit faire la roue selon les paramètres reçus par la fonction
-//rayonRoue et rayonArc sont en cm et angle est en degrès
-float calculerNbPulse(int angle, float rayonRoue, float rayonArc) {
-  float nbPulse;
-
-  nbPulse =  (rayonArc * angle*3200)/(360*rayonRoue);
-  
-  return nbPulse;
-}
-
-//Quand roue = 0, le robot tourne vers la droite
-//Quand roue = 1, le robot tourne vers la gauche
-void tourner(int angle, int roue) {
-  int pulseEncodeur = 0, pulse;
-  ENCODER_Reset(roue);
-  
-  pulse = calculerNbPulse(angle, 7.65/2 , 19.3);
-
-  MOTOR_SetSpeed(roue, 0.6);
-
-  while (pulseEncodeur <= pulse) {
-    pulseEncodeur = ENCODER_Read(roue);
-
-    if(ROBUS_IsBumper(1)) {
-      MOTOR_SetSpeed(roue, 0);
     }
   }
-
-  MOTOR_SetSpeed(roue, 0);
 }
-

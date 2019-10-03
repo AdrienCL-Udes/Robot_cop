@@ -18,18 +18,39 @@ float current_speed = init_speed;
 float calculerNbPulse(int angle, float rayonRoue, float rayonArc) {
   float nbPulse;
 
-  nbPulse =  (rayonArc * angle*3200)/(360*rayonRoue);
+  nbPulse =  (rayonArc * angle* 3200)/(360*rayonRoue);
   
   return nbPulse;
 }
 
-//Quand roue = 0, le robot tourne vers la droite
-//Quand roue = 1, le robot tourne vers la gauche
-void tourner(int angle, int roue) {
+//Cette fonction fait tourner le robot avec les deux moteurs avec le sens et l'angle entré par l'utilisateur
+//roue = 0, le robot tourne vers la droite
+//+roue = 1, le robot tourne vers la gauche
+//angle est en degré
+void tourner1Roue(unsigned int angle, int roue) {
+  int pulseEncodeur = 0, pulse;
+  ENCODER_Reset(roue);
+  
+  pulse = calculerNbPulse(angle, 7.62/2 , 19.3);
+
+  MOTOR_SetSpeed(roue, 0.3);
+
+  while (pulseEncodeur < pulse) {
+    pulseEncodeur = ENCODER_Read(roue);
+  }
+
+  MOTOR_SetSpeed(roue, 0);
+}
+
+//Cette fonction fait tourner le robot avec les deux moteurs avec le sens et l'angle entré par l'utilisateur
+//roue = 0, le robot tourne vers la droite
+//+roue = 1, le robot tourne vers la gauche
+//angle est en degré
+void tourner2Roue(unsigned int angle, int roue) {
   int pulseEncodeur = 0, pulse, roue2;
   ENCODER_Reset(roue);
   
-  pulse = calculerNbPulse(angle/2, 7.65/2 , 19.3);
+  pulse = calculerNbPulse(angle/2, 7.62/2 , 19.3);
 
   if(roue == 0){
     roue2 = 1;
@@ -37,10 +58,10 @@ void tourner(int angle, int roue) {
     roue2 = 0;
   }
   
-  MOTOR_SetSpeed(roue, 0.4);
-  MOTOR_SetSpeed(roue2, -0.4);
+  MOTOR_SetSpeed(roue, 0.2);
+  MOTOR_SetSpeed(roue2, -0.2);
 
-  while (pulseEncodeur <= pulse) {
+  while (pulseEncodeur < pulse-50) {
     pulseEncodeur = ENCODER_Read(roue);
   }
 
@@ -115,17 +136,22 @@ void loop()
       current_speed = init_speed;
     }
     else if(ROBUS_IsBumper(0)) {
-      tourner(45, 0);
+      tourner1Roue(90, 0);
       delay(1000);
-
-      tourner(90, 0);
+      tourner2Roue(90, 0);
+      delay(1000);
+      tourner1Roue(90, 0);
+      delay(1000);
+      tourner2Roue(90, 0);
+      delay(1000);
+      /*tourner(360, 0);
       delay(1000);
 
       tourner(45, 1);
       delay(1000);
 
       tourner(90, 1);
-      delay(1000);
+      delay(1000);*/
     }
   }
 }

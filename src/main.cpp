@@ -3,7 +3,7 @@
 #define MASTERSPEED 0.5
 #define ROTATION 3200.00
 int lastMaster = 0;
-//test doom
+//test doom Je test toute
 float calc(int master, int slave)
 {
   float correction = MASTERSPEED;

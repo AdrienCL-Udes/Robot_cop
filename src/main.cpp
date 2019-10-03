@@ -26,22 +26,26 @@ float calculerNbPulse(int angle, float rayonRoue, float rayonArc) {
 //Quand roue = 0, le robot tourne vers la droite
 //Quand roue = 1, le robot tourne vers la gauche
 void tourner(int angle, int roue) {
-  int pulseEncodeur = 0, pulse;
+  int pulseEncodeur = 0, pulse, roue2;
   ENCODER_Reset(roue);
   
-  pulse = calculerNbPulse(angle, 7.65/2 , 19.3);
+  pulse = calculerNbPulse(angle/2, 7.65/2 , 19.3);
 
-  MOTOR_SetSpeed(roue, 0.6);
+  if(roue == 0){
+    roue2 = 1;
+  }else {
+    roue2 = 0;
+  }
+  
+  MOTOR_SetSpeed(roue, 0.4);
+  MOTOR_SetSpeed(roue2, -0.4);
 
   while (pulseEncodeur <= pulse) {
     pulseEncodeur = ENCODER_Read(roue);
-
-    if(ROBUS_IsBumper(1)) {
-      MOTOR_SetSpeed(roue, 0);
-    }
   }
 
   MOTOR_SetSpeed(roue, 0);
+  MOTOR_SetSpeed(roue2, 0);
 }
 
 // This fonction will adjuste the speed of motor 0

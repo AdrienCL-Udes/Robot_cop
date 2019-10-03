@@ -9,9 +9,9 @@ const float Ifactor = 0.00001;
 // Init varaible for motor control
 int integral = 0;
 const float init_speed = 0.6;
-const float min_speed = 0.53;
-const float max_speed = 0.67;
 float current_speed = init_speed;
+const float Wheel_size_10 = 76.2;
+const int numberTickWheel = 32000;
 
 // This fonction will adjuste the speed of motor 0
 // to match motor 1
@@ -40,17 +40,17 @@ void PID()
 void MOVE_forward(int distance)
 {
   //int runTime = getRuntime(distance);
-  int nbTour_10 = 1;
-  int nbCoche = 16000;
+  int nbTour_10 = CALCUL_nbCompleteWheelRotation_10(distance);
+  int nbTick = CALCUL_nbPartialWheelRotation(distance, nbTour_10);
   int tmpTour = 0;
   ENCODER_Reset(0);
   ENCODER_Reset(1);
   MOTOR_SetSpeed(0, init_speed);
   MOTOR_SetSpeed(1, init_speed);
-  while (nbTour_10 > tmpTour || ENCODER_Read(0) <= nbCoche)
+  while (nbTour_10 > tmpTour || ENCODER_Read(0) <= nbTick)
   {
     PID();
-    if(ENCODER_Read(0) > 32000)
+    if (ENCODER_Read(0) > 32000)
     {
       tmpTour = tmpTour + 1;
       ENCODER_Reset(0);
@@ -67,6 +67,18 @@ void setup()
   // put your setup code here, to run once:
   BoardInit();
 }
+
+int CALCUL_nbCompleteWheelRotation_10(float cm_distance)
+{
+  return cm_distance / Wheel_size_10;
+}
+
+int CALCUL_nbPartialWheelRotation(float cm_distance, int nbCompleteRotation)
+{
+  float leftover = cm_distance - nbCompleteRotation * Wheel_size_10;
+  return leftover * numberTickWheel / Wheel_size_10;
+}
+
 //THIS TOO
 void loop()
 {
@@ -75,7 +87,7 @@ void loop()
   {
     if (ROBUS_IsBumper(3))
     {
-      MOVE_forward(0);
+      MOVE_forward(30);
       integral = 0;
       current_speed = init_speed;
     }

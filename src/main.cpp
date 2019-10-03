@@ -1,12 +1,11 @@
 #include <Arduino.h>
 #include <LibRobus.h>
-#define MASTERSPEED 0.3
+#define MASTERSPEED 0.5
 #define ROTATION 3200.00
 #define WHEEL_SIZE 7.62
 #define TICK_CM 133.7233
 int lastMaster = 0;
 //dhfuewhduifhuhfushufhdutest doom
-<<<<<<< HEAD
 
 void PID();
 
@@ -82,24 +81,24 @@ void turn(int direction)
   }
 }
 
-=======
->>>>>>> equipe_1
 float calc(int master, int slave)
 {
   float correction = MASTERSPEED;
   float diff;
-  diff = (slave - master)/ROTATION;
+  diff = (master - slave)/ROTATION;
+  Serial.println(diff);
 
-  if(diff>=0)
+  if(diff>0)
   {
     correction = correction * (1.00 + diff);
   }
-  else
+  else if(diff < 0)
   {
-    correction = correction * (1.00 - diff);
+    correction = correction * (1.00 + diff);
   }
   
   return correction;
+
 
 }
 
@@ -141,9 +140,9 @@ void loop()
   if(ROBUS_IsBumper(3))
   {
     forward(90);
-    turn(90);
-    forward(50);
     turn(-90);
+    forward(50);
+    turn(90);
   }
   
 }

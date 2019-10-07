@@ -1,80 +1,121 @@
 #include <Arduino.h>
 #include <LibRobus.h>
 
-//EQUIPE 2 ICI
-// Constant use for tuning PID
-const float Pfactor = 0.0002;
-const float Ifactor = 0.00001;
+#define TICK_CM 133.7233
+#define MASTERSPEED 0.3
+#define ROTATION 3200.00
+int lastMaster = 0;
 
-// Init varaible for motor control
-int integral = 0;
-const float init_speed = 0.4;
-float current_speed = init_speed;
-const float Wheel_size_10 = 76.2;
-const int numberTickWheel = 32000;
+float calc(int master, int slave)
+{
+  float correction = MASTERSPEED;
+  float diff;
+  diff = (master - slave) / ROTATION;
+  //Serial.println(diff);
 
-// This fonction will adjuste the speed of motor 0
-// to match motor 1
+  if (diff > 0)
+  {
+    correction = correction * (1.00 + diff);
+  }
+  else if (diff < 0)
+  {
+    correction = correction * (1.00 + diff);
+  }
+
+  return correction;
+}
+
 void PID()
 {
-  int current_position = ENCODER_Read(0);
+  lastMaster = ENCODER_Read(1);
+  int wheelSlave = ENCODER_Read(0);
+  float correct = calc(lastMaster, wheelSlave);
+  Serial.print("slave speed: ");
+  Serial.println(correct);
+  MOTOR_SetSpeed(1, MASTERSPEED);
+  MOTOR_SetSpeed(0, correct);
+}
 
-  int error = ENCODER_Read(1) - current_position;
-  integral = integral + error;
-  int error_value = error;
+float calculerNbPulse(int angle, float rayonRoue, float rayonArc)
+{
+  float nbPulse;
 
-  float adjustment = Pfactor * error_value + Ifactor * integral;
+  nbPulse = (rayonArc * angle * 3200) / (360 * rayonRoue);
 
-  current_speed = current_speed + adjustment;
+  return nbPulse;
+}
 
-  MOTOR_SetSpeed(0, current_speed);
+//Cette fonction fait tourner le robot avec les deux moteurs avec le sens et l'angle entré par l'utilisateur
+//roue = 0, le robot tourne vers la droite
+//+roue = 1, le robot tourne vers la gauche
+//angle est en degré
+void tourner1Roue(unsigned int angle, int roue)
+{
+  int pulseEncodeur = 0, pulse;
 
-  if (current_position > 10000)
+  pulse = calculerNbPulse(angle, 7.62 / 2, 19.3);
+
+  MOTOR_SetSpeed(roue, 0.3);
+
+  while (pulseEncodeur < pulse)
   {
-    integral = 0;
-    MOTOR_SetSpeed(0, init_speed);
+    pulseEncodeur = ENCODER_Read(roue);
   }
-  delay(100);
+
+  MOTOR_SetSpeed(roue, 0);
+  ENCODER_Reset(roue);
 }
 
-int CALCUL_nbCompleteWheelRotation_10(float cm_distance)
+//Cette fonction fait tourner le robot avec les deux moteurs avec le sens et l'angle entré par l'utilisateur
+//roue = 0, le robot tourne vers la droite
+//+roue = 1, le robot tourne vers la gauche
+//angle est en degré
+void tourner2Roue(unsigned int angle, int roue)
 {
-  return cm_distance / Wheel_size_10;
+  int pulseEncodeur = 0, pulse, roue2;
+
+  pulse = calculerNbPulse(angle / 2, 7.62 / 2, 19.3);
+
+  if (roue == 0)
+  {
+    roue2 = 1;
+  }
+  else
+  {
+    roue2 = 0;
+  }
+
+  MOTOR_SetSpeed(roue, 0.2);
+  MOTOR_SetSpeed(roue2, -0.2);
+
+  while (pulseEncodeur < pulse - 50)
+  {
+    pulseEncodeur = ENCODER_Read(roue);
+  }
+
+  MOTOR_SetSpeed(roue, 0);
+  MOTOR_SetSpeed(roue2, 0);
+  ENCODER_Reset(roue);
+  ENCODER_Reset(roue2);
 }
 
-int CALCUL_nbPartialWheelRotation(float cm_distance, int nbCompleteRotation)
+//This function will make the robot move forward a
+//given distance in CM
+void forward(float cm)
 {
-  float leftover = cm_distance - nbCompleteRotation * Wheel_size_10;
-  return leftover * numberTickWheel / Wheel_size_10;
-}
-
-void MOVE_forward(int distance)
-{
-  int nbTour_10 = CALCUL_nbCompleteWheelRotation_10(distance);
-  int nbTick = CALCUL_nbPartialWheelRotation(distance, nbTour_10);
-
-  Serial.print("Nb Tour: ");
-  Serial.println(nbTour_10);
-  Serial.print("Nb Tick: ");
-  Serial.println(nbTick);
-  
-  int tmpTour = 0;
-  ENCODER_Reset(0);
-  ENCODER_Reset(1);
-  MOTOR_SetSpeed(0, init_speed);
-  MOTOR_SetSpeed(1, init_speed);
-  while (nbTour_10 > tmpTour || ENCODER_Read(0) <= nbTick)
+  bool end = false;
+  while (end == false)
   {
     PID();
-    if (ENCODER_Read(0) > 32000)
+    if (ENCODER_Read(1) >= (TICK_CM * cm))
     {
-      tmpTour = tmpTour + 1;
+      end = true;
+      MOTOR_SetSpeed(0, 0);
+      MOTOR_SetSpeed(1, 0);
       ENCODER_Reset(0);
       ENCODER_Reset(1);
     }
   }
-  MOTOR_SetSpeed(0, 0);
-  MOTOR_SetSpeed(1, 0);
 }
 
 //PUT THESE AT THE END
@@ -84,17 +125,39 @@ void setup()
   BoardInit();
 }
 
-//THIS TOO
 void loop()
 {
+  int ddelay = 500;
   // put your main code here, to run repeatedly:
   while (1)
   {
     if (ROBUS_IsBumper(3))
     {
-      MOVE_forward(30);
-      integral = 0;
-      current_speed = init_speed;
+      tourner2Roue(45, 0);
+      /*forward(122);
+      delay(ddelay);
+      tourner2Roue(90, 1);
+      delay(ddelay);
+      forward(90);
+      delay(ddelay);
+      tourner2Roue(90, 0);
+      delay(ddelay);
+      forward(95);
+      delay(ddelay);
+      tourner2Roue(45, 0);
+      delay(ddelay);
+      forward(160);
+      delay(ddelay);
+      tourner2Roue(90, 1);
+      delay(ddelay);
+      forward(50);
+      delay(ddelay);
+      tourner2Roue(45, 0);
+      delay(ddelay);
+      forward(110);
+      delay(ddelay);
+      tourner2Roue(360, 1);
+      delay(ddelay);*/
     }
   }
 }

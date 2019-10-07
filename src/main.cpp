@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <LibRobus.h>
-#define MASTERSPEED 0.5
+#define MASTERSPEED 0.3
 #define ROTATION 3200.00
 #define WHEEL_SIZE 7.62
 #define TICK_CM 133.7233
@@ -139,10 +139,17 @@ void loop()
   }
   if(ROBUS_IsBumper(3))
   {
-    forward(90);
-    turn(-90);
-    forward(50);
-    turn(90);
+    forward(120);//
+    turn(-90);//
+    forward(68);//
+    turn(90);//
+    forward(95);//
+    turn(45);//
+    forward(160);//
+    turn(-90);//
+    forward(50);//
+    turn(45);//
+    forward(110);//
   }
   
 }

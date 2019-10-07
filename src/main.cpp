@@ -8,7 +8,7 @@ const float Ifactor = 0.00001;
 
 // Init varaible for motor control
 int integral = 0;
-const float init_speed = 0.6;
+const float init_speed = 0.4;
 float current_speed = init_speed;
 const float Wheel_size_10 = 76.2;
 const int numberTickWheel = 32000;
@@ -37,11 +37,27 @@ void PID()
   delay(100);
 }
 
+int CALCUL_nbCompleteWheelRotation_10(float cm_distance)
+{
+  return cm_distance / Wheel_size_10;
+}
+
+int CALCUL_nbPartialWheelRotation(float cm_distance, int nbCompleteRotation)
+{
+  float leftover = cm_distance - nbCompleteRotation * Wheel_size_10;
+  return leftover * numberTickWheel / Wheel_size_10;
+}
+
 void MOVE_forward(int distance)
 {
-  //int runTime = getRuntime(distance);
   int nbTour_10 = CALCUL_nbCompleteWheelRotation_10(distance);
   int nbTick = CALCUL_nbPartialWheelRotation(distance, nbTour_10);
+
+  Serial.print("Nb Tour: ");
+  Serial.println(nbTour_10);
+  Serial.print("Nb Tick: ");
+  Serial.println(nbTick);
+  
   int tmpTour = 0;
   ENCODER_Reset(0);
   ENCODER_Reset(1);
@@ -66,17 +82,6 @@ void setup()
 {
   // put your setup code here, to run once:
   BoardInit();
-}
-
-int CALCUL_nbCompleteWheelRotation_10(float cm_distance)
-{
-  return cm_distance / Wheel_size_10;
-}
-
-int CALCUL_nbPartialWheelRotation(float cm_distance, int nbCompleteRotation)
-{
-  float leftover = cm_distance - nbCompleteRotation * Wheel_size_10;
-  return leftover * numberTickWheel / Wheel_size_10;
 }
 
 //THIS TOO

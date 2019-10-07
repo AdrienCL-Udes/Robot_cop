@@ -1,20 +1,29 @@
 #include <Arduino.h>
 #include <LibRobus.h>
-#define MASTERSPEED 0.3
 #define ROTATION 3200.00
 #define WHEEL_SIZE 7.62
 #define TICK_CM 133.7233
 int lastMaster = 0;
-//dhfuewhduifhuhfushufhdutest doom
+float masterSpeed = 0.1;
+float speedRate = 0.004;
 
-void PID();
+void PID(bool);
 
 void forward(float cm)
 {
   bool end = false;
+  masterSpeed = 0.1;
+  bool haveToSlowDown = false;
   while(end == false)
   {
-    PID();
+    Serial.print("Speed: ");
+    Serial.println(masterSpeed);
+    PID(haveToSlowDown);
+    haveToSlowDown = (TICK_CM*cm)*0.65 <= ENCODER_Read(1);
+    Serial.print("SlowDown: ");
+    Serial.println(haveToSlowDown);
+
+    Serial.println();
     if(ENCODER_Read(1) >= (TICK_CM * cm))
     {
       end = true;
@@ -81,12 +90,26 @@ void turn(int direction)
   }
 }
 
-float calc(int master, int slave)
+float calc(int master, int slave, bool haveToSlowDown)
 {
-  float correction = MASTERSPEED;
+  if(!haveToSlowDown)
+  {
+    if(masterSpeed < 1)
+    {
+      masterSpeed = masterSpeed + speedRate;
+    }
+  }
+  else
+  {
+    if(masterSpeed >= 0.10)
+    {
+      masterSpeed = masterSpeed * 0.97;
+    }
+  }
+  float correction = masterSpeed;
   float diff;
   diff = (master - slave)/ROTATION;
-  Serial.println(diff);
+  //Serial.println(diff);
 
   if(diff>0)
   {
@@ -114,15 +137,15 @@ void WriteEncodeur()
   delay(50);
 }
 
-void PID()
+void PID(bool haveToSlowDown)
 {
   
   lastMaster = ENCODER_Read(1);
   int wheelSlave = ENCODER_Read(0);
-  float correct = calc(lastMaster,wheelSlave);
-  Serial.print("slave speed: ");
-  Serial.println(correct);
-  MOTOR_SetSpeed(1,MASTERSPEED);
+  float correct = calc(lastMaster,wheelSlave,haveToSlowDown);
+  //Serial.print("slave speed: ");
+  //Serial.println(correct);
+  MOTOR_SetSpeed(1,masterSpeed);
   MOTOR_SetSpeed(0,correct);
 }
 
@@ -133,10 +156,15 @@ void setup()
 
 void loop()
 {
-  if(lastMaster == 0 || lastMaster != ENCODER_Read(1))
+  // if(lastMaster == 0 || lastMaster != ENCODER_Read(1))
+  // {
+  //   WriteEncodeur();
+  // }
+  if(ROBUS_IsBumper(0))
   {
-    WriteEncodeur();
+    forward(60);
   }
+
   if(ROBUS_IsBumper(3))
   {
     forward(120);//

@@ -146,11 +146,35 @@ void loop()
   // put your main code here, to run repeatedly:
   while (1)
   {
-    if (ROBUS_IsBumper(3))
+    if (ROBUS_IsBumper(2))
     {
       MOVE_forward(30);
       integral = 0;
       current_speed = init_speed;
+    }
+    else if (ROBUS_IsBumper(3))
+    {
+      MOVE_forward(122);
+
+      tourner2Roue(90, 1);
+
+      MOVE_forward(90);
+      
+      tourner2Roue(90, 0);
+
+      MOVE_forward(70);
+
+      tourner2Roue(45, 0);
+
+      MOVE_forward(172);
+
+      tourner2Roue(90, 1);
+
+      MOVE_forward(45);
+
+      tourner2Roue(45,0);
+
+      MOVE_forward(110);
     }
     else if(ROBUS_IsBumper(0)) {
       tourner1Roue(90, 0);

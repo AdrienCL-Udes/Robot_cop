@@ -8,10 +8,10 @@ const float Ifactor = 0.00001;
 
 // Init varaible for motor control
 int integral = 0;
-const float init_speed = 0.6;
-const float min_speed = 0.53;
-const float max_speed = 0.67;
+const float init_speed = 0.4;
 float current_speed = init_speed;
+const float Wheel_size_10 = 76.2;
+const int numberTickWheel = 32000;
 
 //Calcule le nombre de pulse que doit faire la roue selon les paramètres reçus par la fonction
 //rayonRoue et rayonArc sont en cm et angle est en degrès
@@ -93,20 +93,36 @@ void PID()
   delay(100);
 }
 
+int CALCUL_nbCompleteWheelRotation_10(float cm_distance)
+{
+  return cm_distance / Wheel_size_10;
+}
+
+int CALCUL_nbPartialWheelRotation(float cm_distance, int nbCompleteRotation)
+{
+  float leftover = cm_distance - nbCompleteRotation * Wheel_size_10;
+  return leftover * numberTickWheel / Wheel_size_10;
+}
+
 void MOVE_forward(int distance)
 {
-  //int runTime = getRuntime(distance);
-  int nbTour_10 = 1;
-  int nbCoche = 16000;
+  int nbTour_10 = CALCUL_nbCompleteWheelRotation_10(distance);
+  int nbTick = CALCUL_nbPartialWheelRotation(distance, nbTour_10);
+
+  Serial.print("Nb Tour: ");
+  Serial.println(nbTour_10);
+  Serial.print("Nb Tick: ");
+  Serial.println(nbTick);
+  
   int tmpTour = 0;
   ENCODER_Reset(0);
   ENCODER_Reset(1);
   MOTOR_SetSpeed(0, init_speed);
   MOTOR_SetSpeed(1, init_speed);
-  while (nbTour_10 > tmpTour || ENCODER_Read(0) <= nbCoche)
+  while (nbTour_10 > tmpTour || ENCODER_Read(0) <= nbTick)
   {
     PID();
-    if(ENCODER_Read(0) > 32000)
+    if (ENCODER_Read(0) > 32000)
     {
       tmpTour = tmpTour + 1;
       ENCODER_Reset(0);
@@ -123,6 +139,7 @@ void setup()
   // put your setup code here, to run once:
   BoardInit();
 }
+
 //THIS TOO
 void loop()
 {
@@ -131,7 +148,7 @@ void loop()
   {
     if (ROBUS_IsBumper(3))
     {
-      MOVE_forward(0);
+      MOVE_forward(30);
       integral = 0;
       current_speed = init_speed;
     }

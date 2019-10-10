@@ -1,41 +1,54 @@
 #include <Arduino.h>
 #include <LibRobus.h>
-
-#define TICK_CM 133.7233
 #define MASTERSPEED 0.3
 #define ROTATION 3200.00
+#define TICK_CM 133.7233
 int lastMaster = 0;
 
-float calc(int master, int slave)
+void acc()
 {
-  float correction = MASTERSPEED;
-  float diff;
-  diff = (master - slave) / ROTATION;
-  //Serial.println(diff);
-
-  if (diff > 0)
+  float speed = 0.0;
+  while (speed < MASTERSPEED)
   {
-    correction = correction * (1.00 + diff);
+    MOTOR_SetSpeed(0, speed);
+    MOTOR_SetSpeed(1, speed);
+    speed += 0.05;
+    delay(50);
   }
-  else if (diff < 0)
+}
+void dec()
+{
+  float speed = MASTERSPEED;
+  while (speed > 0)
   {
-    correction = correction * (1.00 + diff);
+    MOTOR_SetSpeed(0, speed);
+    MOTOR_SetSpeed(1, speed);
+    speed -= 0.05;
+    delay(50);
   }
-
-  return correction;
 }
 
-void PID()
+void PID();
+
+void forward(float cm)
 {
-  lastMaster = ENCODER_Read(1);
-  int wheelSlave = ENCODER_Read(0);
-  float correct = calc(lastMaster, wheelSlave);
-  Serial.print("slave speed: ");
-  Serial.println(correct);
-  MOTOR_SetSpeed(1, MASTERSPEED);
-  MOTOR_SetSpeed(0, correct);
+  bool end = false;
+  acc();
+  while (end == false)
+  {
+    PID();
+    if (ENCODER_Read(1) >= (TICK_CM * cm) - 200)
+    {
+      end = true;
+      dec();
+      ENCODER_Reset(0);
+      ENCODER_Reset(1);
+    }
+  }
 }
 
+//Calcule le nombre de pulse que doit faire la roue selon les paramètres reçus par la fonction
+//rayonRoue et rayonArc sont en cm et angle est en degrès
 float calculerNbPulse(int angle, float rayonRoue, float rayonArc)
 {
   float nbPulse;
@@ -88,7 +101,7 @@ void tourner2Roue(unsigned int angle, int roue)
   MOTOR_SetSpeed(roue, 0.2);
   MOTOR_SetSpeed(roue2, -0.2);
 
-  while (pulseEncodeur < pulse - 50)
+  while (pulseEncodeur < pulse - 100)
   {
     pulseEncodeur = ENCODER_Read(roue);
   }
@@ -99,65 +112,81 @@ void tourner2Roue(unsigned int angle, int roue)
   ENCODER_Reset(roue2);
 }
 
-//This function will make the robot move forward a
-//given distance in CM
-void forward(float cm)
+float calc(int master, int slave)
 {
-  bool end = false;
-  while (end == false)
+  float correction = MASTERSPEED;
+  float diff;
+  diff = (master - slave) / ROTATION;
+  Serial.println(diff);
+
+  if (diff > 0)
   {
-    PID();
-    if (ENCODER_Read(1) >= (TICK_CM * cm))
+    correction = correction * (1.00 + diff);
+  }
+  else if (diff < 0)
+  {
+    correction = correction * (1.00 + diff);
+  }
+
+  return correction;
+}
+
+void PID()
+{
+
+  lastMaster = ENCODER_Read(1);
+  int wheelSlave = ENCODER_Read(0);
+  float correct = calc(lastMaster, wheelSlave);
+  Serial.print("slave speed: ");
+  Serial.println(correct);
+  MOTOR_SetSpeed(1, MASTERSPEED);
+  MOTOR_SetSpeed(0, correct);
+}
+
+void go(int *tabData, char *tabMove, int tabSize)
+{
+  for (int i = 0; i < tabSize; i++)
+  {
+    switch (tabMove[i])
     {
-      end = true;
-      MOTOR_SetSpeed(0, 0);
-      MOTOR_SetSpeed(1, 0);
-      ENCODER_Reset(0);
-      ENCODER_Reset(1);
+    case 'F':
+      forward(tabData[i]);
+      break;
+
+    case 'R':
+      tourner2Roue(tabData[i], 0);
+      break;
+
+    case 'L':
+      tourner2Roue(tabData[i], 1);
+      break;
+
+    default:
+      break;
     }
+
+    delay(300);
   }
 }
 
-//PUT THESE AT THE END
 void setup()
 {
-  // put your setup code here, to run once:
   BoardInit();
 }
 
 void loop()
 {
-  int ddelay = 500;
-  // put your main code here, to run repeatedly:
-  while (1)
+  if (ROBUS_IsBumper(3))
   {
-    if (ROBUS_IsBumper(3))
-    {
-      tourner2Roue(45, 0);
-      /*forward(122);
-      delay(ddelay);
-      tourner2Roue(90, 1);
-      delay(ddelay);
-      forward(90);
-      delay(ddelay);
-      tourner2Roue(90, 0);
-      delay(ddelay);
-      forward(95);
-      delay(ddelay);
-      tourner2Roue(45, 0);
-      delay(ddelay);
-      forward(160);
-      delay(ddelay);
-      tourner2Roue(90, 1);
-      delay(ddelay);
-      forward(50);
-      delay(ddelay);
-      tourner2Roue(45, 0);
-      delay(ddelay);
-      forward(110);
-      delay(ddelay);
-      tourner2Roue(360, 1);
-      delay(ddelay);*/
-    }
+    //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+    int tabData[] =  {223,  90, 92,  100, 50,  90,   50,  85,  95,  90,  42,  90, 120, 180, 248};
+    char tabMove[] = {'F', 'L', 'F', 'R', 'F', 'R', 'F', 'L', 'F', 'R', 'F', 'L', 'F', 'L', 'F'};
+
+    int tabSize = sizeof(tabData);
+
+    int *pointerTabData = tabData;
+    char *pointerTabMove = tabMove;
+
+    go(pointerTabData, pointerTabMove, tabSize);
   }
 }

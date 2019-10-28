@@ -13,6 +13,23 @@ float current_speed = init_speed;
 const float Wheel_size_10 = 76.2;
 const int numberTickWheel = 32000;
 
+
+void ouvrirAvecServomoteur() {
+  SERVO_Enable(0);
+  delay(100);
+  SERVO_SetAngle(0, 180);
+  delay(500);
+  SERVO_Disable(0);
+}
+
+void fermerAvecServomoteur() {
+  SERVO_Enable(0);
+  delay(100);
+  SERVO_SetAngle(0, 0);
+  delay(500);
+  SERVO_Disable(0);
+}
+
 //Calcule le nombre de pulse que doit faire la roue selon les paramètres reçus par la fonction
 //rayonRoue et rayonArc sont en cm et angle est en degrès
 float calculerNbPulse(int angle, float rayonRoue, float rayonArc) {
@@ -144,59 +161,10 @@ void setup()
 void loop()
 {
   // put your main code here, to run repeatedly:
-<<<<<<< HEAD
-  /// loll
-=======
-  while (1)
-  {
-    if (ROBUS_IsBumper(2))
-    {
-      MOVE_forward(30);
-      integral = 0;
-      current_speed = init_speed;
-    }
-    else if (ROBUS_IsBumper(3))
-    {
-      MOVE_forward(122);
+  SERVO_Disable(0);
+  if(ROBUS_IsBumper(0)) {
+    ouvrirAvecServomoteur();
 
-      tourner2Roue(90, 1);
-
-      MOVE_forward(90);
-      
-      tourner2Roue(90, 0);
-
-      MOVE_forward(70);
-
-      tourner2Roue(45, 0);
-
-      MOVE_forward(172);
-
-      tourner2Roue(90, 1);
-
-      MOVE_forward(45);
-
-      tourner2Roue(45,0);
-
-      MOVE_forward(110);
-    }
-    else if(ROBUS_IsBumper(0)) {
-      tourner1Roue(90, 0);
-      delay(1000);
-      tourner2Roue(90, 0);
-      delay(1000);
-      tourner1Roue(90, 0);
-      delay(1000);
-      tourner2Roue(90, 0);
-      delay(1000);
-      /*tourner(360, 0);
-      delay(1000);
-
-      tourner(45, 1);
-      delay(1000);
-
-      tourner(90, 1);
-      delay(1000);*/
-    }
-  }
->>>>>>> equipe_2
+    fermerAvecServomoteur();
+  } 
 }

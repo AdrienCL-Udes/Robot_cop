@@ -13,7 +13,7 @@ float current_speed = init_speed;
 const float Wheel_size_10 = 76.2;
 const int numberTickWheel = 32000;
 
-
+//Cette fonction permet de faire tourner le servomoteur à un angle de 180 
 void ouvrirAvecServomoteur() {
   SERVO_Enable(0);
   delay(100);
@@ -22,6 +22,7 @@ void ouvrirAvecServomoteur() {
   SERVO_Disable(0);
 }
 
+//Cette fonction permet de faire tourner le servomoteur à un angle de 0
 void fermerAvecServomoteur() {
   SERVO_Enable(0);
   delay(100);

@@ -17,7 +17,7 @@ const int numberTickWheel = 32000;
 void ouvrirAvecServomoteur() {
   SERVO_Enable(0);
   delay(100);
-  SERVO_SetAngle(0, 180);
+  SERVO_SetAngle(0, 105);
   delay(500);
   SERVO_Disable(0);
 }
@@ -26,7 +26,7 @@ void ouvrirAvecServomoteur() {
 void fermerAvecServomoteur() {
   SERVO_Enable(0);
   delay(100);
-  SERVO_SetAngle(0, 0);
+  SERVO_SetAngle(0, 160);
   delay(500);
   SERVO_Disable(0);
 }
@@ -164,8 +164,17 @@ void loop()
   // put your main code here, to run repeatedly:
   SERVO_Disable(0);
   if(ROBUS_IsBumper(0)) {
-    ouvrirAvecServomoteur();
-
     fermerAvecServomoteur();
+    ENCODER_Reset(0);
+    ENCODER_Reset(1);
+    MOTOR_SetSpeed(1, -0.3);
+    MOTOR_SetSpeed(0, -0.3);
+
+    delay(1000);
+
+
+    MOTOR_SetSpeed(0, 0);
+    MOTOR_SetSpeed(1, 0);
+    ouvrirAvecServomoteur();
   } 
 }

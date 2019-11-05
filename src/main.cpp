@@ -1,43 +1,55 @@
 #include <Arduino.h>
 #include <LibRobus.h>
 
-//EQUIPE 2 ICI
-// Constant use for tuning PID
-const float Pfactor = 0.0002;
-const float Ifactor = 0.00001;
+#define PIN_RIGHT A0
+#define PIN_LEFT A2
+#define PIN_MIDDLE A3
+#define PIN_DISTANCE A4
 
-// Init varaible for motor control
-int integral = 0;
-const float init_speed = 0.4;
-float current_speed = init_speed;
-const float Wheel_size_10 = 76.2;
-const int numberTickWheel = 32000;
+#define VERT 0
+#define BLEU 1
+#define JAUNE 2
+#define ROUGE 3
+
+#define PIN_NB 3
+#define SPEED_FORWARD 0.2
+#define SPEED_BACK -0.2
 
 //Cette fonction permet de faire tourner le servomoteur à un angle de 180 
 void ouvrirAvecServomoteur() {
   SERVO_Enable(0);
-  delay(100);
-  SERVO_SetAngle(0, 105);
-  delay(500);
+  for(int i = 150; i > 60; i = i - 5){
+    SERVO_SetAngle(0, i);
+    delay(10);
+  }
   SERVO_Disable(0);
 }
 
 //Cette fonction permet de faire tourner le servomoteur à un angle de 0
 void fermerAvecServomoteur() {
   SERVO_Enable(0);
-  delay(100);
-  SERVO_SetAngle(0, 160);
-  delay(500);
+  for(int i = 60; i < 150; i = i + 5){
+    SERVO_SetAngle(0, i);
+    delay(10);
+  }
   SERVO_Disable(0);
+}
+
+
+int distanceBalle() {
+  int resultatCm;
+  resultatCm=(6787.0/(analogRead(PIN_DISTANCE)-3.0))-4.0;
+  return resultatCm;
 }
 
 //Calcule le nombre de pulse que doit faire la roue selon les paramètres reçus par la fonction
 //rayonRoue et rayonArc sont en cm et angle est en degrès
-float calculerNbPulse(int angle, float rayonRoue, float rayonArc) {
+float calculerNbPulse(int angle, float rayonRoue, float rayonArc)
+{
   float nbPulse;
 
-  nbPulse =  (rayonArc * angle* 3200)/(360*rayonRoue);
-  
+  nbPulse = (rayonArc * angle * 3200) / (360 * rayonRoue);
+
   return nbPulse;
 }
 
@@ -45,41 +57,27 @@ float calculerNbPulse(int angle, float rayonRoue, float rayonArc) {
 //roue = 0, le robot tourne vers la droite
 //+roue = 1, le robot tourne vers la gauche
 //angle est en degré
-void tourner1Roue(unsigned int angle, int roue) {
-  int pulseEncodeur = 0, pulse;
-  ENCODER_Reset(roue);
-  
-  pulse = calculerNbPulse(angle, 7.62/2 , 19.3);
-
-  MOTOR_SetSpeed(roue, 0.3);
-
-  while (pulseEncodeur < pulse) {
-    pulseEncodeur = ENCODER_Read(roue);
-  }
-
-  MOTOR_SetSpeed(roue, 0);
-}
-
-//Cette fonction fait tourner le robot avec les deux moteurs avec le sens et l'angle entré par l'utilisateur
-//roue = 0, le robot tourne vers la droite
-//+roue = 1, le robot tourne vers la gauche
-//angle est en degré
-void tourner2Roue(unsigned int angle, int roue) {
+void tourner2Roue(unsigned int angle, int roue)
+{
   int pulseEncodeur = 0, pulse, roue2;
   ENCODER_Reset(roue);
-  
-  pulse = calculerNbPulse(angle/2, 7.62/2 , 19.3);
 
-  if(roue == 0){
+  pulse = calculerNbPulse(angle / 2, 7.62 / 2, 19.3);
+
+  if (roue == 0)
+  {
     roue2 = 1;
-  }else {
+  }
+  else
+  {
     roue2 = 0;
   }
-  
+
   MOTOR_SetSpeed(roue, 0.2);
   MOTOR_SetSpeed(roue2, -0.2);
 
-  while (pulseEncodeur < pulse-50) {
+  while (pulseEncodeur < pulse - 50)
+  {
     pulseEncodeur = ENCODER_Read(roue);
   }
 
@@ -87,97 +85,145 @@ void tourner2Roue(unsigned int angle, int roue) {
   MOTOR_SetSpeed(roue2, 0);
 }
 
-// This fonction will adjuste the speed of motor 0
-// to match motor 1
-void PID()
+bool getPinState(int8_t pin)
 {
-  int current_position = ENCODER_Read(0);
+  return analogRead(pin) > 650;
+}
 
-  int error = ENCODER_Read(1) - current_position;
-  integral = integral + error;
-  int error_value = error;
+void followLine(float speed)
+{
+  bool pinRight = getPinState(PIN_RIGHT);
+  bool pinLeft = getPinState(PIN_LEFT);
+  bool pinMiddle = getPinState(PIN_MIDDLE);
 
-  float adjustment = Pfactor * error_value + Ifactor * integral;
-
-  current_speed = current_speed + adjustment;
-
-  MOTOR_SetSpeed(0, current_speed);
-
-  if (current_position > 10000)
+  if (pinMiddle && !pinRight && !pinLeft)
   {
-    integral = 0;
-    MOTOR_SetSpeed(0, init_speed);
+    MOTOR_SetSpeed(LEFT, speed);
+    MOTOR_SetSpeed(RIGHT, speed);
+    //Serial.println("MIDDLE");
   }
-  delay(100);
+
+  if (pinRight && !pinLeft)
+  {
+    MOTOR_SetSpeed(LEFT, 0);
+    MOTOR_SetSpeed(RIGHT, speed);
+    //Serial.println("RIGHT");
+  }
+
+  if (pinLeft && !pinRight)
+  {
+    MOTOR_SetSpeed(RIGHT, 0);
+    MOTOR_SetSpeed(LEFT, speed);
+    //Serial.println("LEFT");
+  }
 }
 
-int CALCUL_nbCompleteWheelRotation_10(float cm_distance)
+//COLOR
+//Vert = 0
+//Bleu = 1
+//Jaune = 2
+//Rouge = 3
+void goToColor(int color)
 {
-  return cm_distance / Wheel_size_10;
-}
+  int distance;
+  MOTOR_SetSpeed(RIGHT, SPEED_FORWARD);
+  MOTOR_SetSpeed(LEFT, SPEED_FORWARD);
 
-int CALCUL_nbPartialWheelRotation(float cm_distance, int nbCompleteRotation)
-{
-  float leftover = cm_distance - nbCompleteRotation * Wheel_size_10;
-  return leftover * numberTickWheel / Wheel_size_10;
-}
+  do
+  {
+    delay(200);
+  } while (getPinState(PIN_RIGHT) && getPinState(PIN_LEFT) && getPinState(PIN_MIDDLE));
 
-void MOVE_forward(int distance)
-{
-  int nbTour_10 = CALCUL_nbCompleteWheelRotation_10(distance);
-  int nbTick = CALCUL_nbPartialWheelRotation(distance, nbTour_10);
+  MOTOR_SetSpeed(RIGHT, 0);
+  MOTOR_SetSpeed(LEFT, 0);
 
-  Serial.print("Nb Tour: ");
-  Serial.println(nbTour_10);
-  Serial.print("Nb Tick: ");
-  Serial.println(nbTick);
+  switch (color)
+  {
+  case VERT:
+    tourner2Roue(45, 0);
+    break;
+
+  case BLEU:
+    tourner2Roue(135, 0);
+    break;
+
+  case JAUNE:
+    tourner2Roue(45, 1);
+    break;
+
+  case ROUGE:
+    tourner2Roue(135, 1);
+    break;
+
+  default:
+    break;
+  }
+
+  MOTOR_SetSpeed(RIGHT, 0.3);
+  MOTOR_SetSpeed(LEFT, 0.3);
+
+  do
+  {
+    followLine(0.3);
+    delay(200);
+  } while (/* condition capteur de couleur */ 1);
+
+  do{
+    distance = distanceBalle();
+  } while (distance > 10);
   
-  int tmpTour = 0;
-  ENCODER_Reset(0);
-  ENCODER_Reset(1);
-  MOTOR_SetSpeed(0, init_speed);
-  MOTOR_SetSpeed(1, init_speed);
-  while (nbTour_10 > tmpTour || ENCODER_Read(0) <= nbTick)
+  MOTOR_SetSpeed(RIGHT, 0);
+  MOTOR_SetSpeed(LEFT, 0);
+
+  do {
+    fermerAvecServomoteur();
+    delay(300);
+  } while(ROBUS_IsBumper(FRONT));
+
+  MOTOR_SetSpeed(RIGHT, SPEED_BACK);
+  MOTOR_SetSpeed(LEFT, SPEED_BACK);
+
+  do
   {
-    PID();
-    if (ENCODER_Read(0) > 32000)
-    {
-      tmpTour = tmpTour + 1;
-      ENCODER_Reset(0);
-      ENCODER_Reset(1);
-    }
-  }
-  MOTOR_SetSpeed(0, 0);
-  MOTOR_SetSpeed(1, 0);
+    followLine(SPEED_BACK);
+    delay(200);
+  } while (getPinState(PIN_RIGHT) && getPinState(PIN_LEFT) && getPinState(PIN_MIDDLE));
+
+  tourner2Roue(180, 0);
+
+  ouvrirAvecServomoteur();
+
+  MOTOR_SetSpeed(RIGHT, SPEED_BACK);
+  MOTOR_SetSpeed(LEFT, SPEED_BACK);
+
+  delay(750);
+
+  MOTOR_SetSpeed(RIGHT, 0);
+  MOTOR_SetSpeed(LEFT, 0);
 }
 
-//PUT THESE AT THE END
+void Move() {
+  MOTOR_SetSpeed(LEFT, 0.15);
+  MOTOR_SetSpeed(RIGHT, 0.15);
+}
+
 void setup()
 {
-  // put your setup code here, to run once:
   BoardInit();
   pinMode(PIN_RIGHT, INPUT_PULLUP);
   pinMode(PIN_LEFT, INPUT_PULLUP);
   pinMode(PIN_MIDDLE, INPUT_PULLUP);
+  pinMode(PIN_DISTANCE, INPUT);
+  SERVO_Disable(0);
 }
 
-//THIS TOO
 void loop()
 {
-  // put your main code here, to run repeatedly:
-  SERVO_Disable(0);
-  if(ROBUS_IsBumper(0)) {
-    fermerAvecServomoteur();
-    ENCODER_Reset(0);
-    ENCODER_Reset(1);
-    MOTOR_SetSpeed(1, -0.3);
-    MOTOR_SetSpeed(0, -0.3);
-
-    delay(1000);
-
-
-    MOTOR_SetSpeed(0, 0);
-    MOTOR_SetSpeed(1, 0);
-    ouvrirAvecServomoteur();
-  } 
+  
+  if (ROBUS_IsBumper(FRONT))
+  {
+    //goToColor(ROUGE);
+    Serial.println(analogRead(PIN_DISTANCE));
+    delay(500);
+  }
 }

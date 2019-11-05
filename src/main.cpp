@@ -151,54 +151,6 @@ void MOVE_forward(int distance)
   MOTOR_SetSpeed(1, 0);
 }
 
-//Parcours du combatant
-#define PIN_RIGHT A0
-#define PIN_LEFT A1
-#define PIN_MIDDLE A2
-
-#define PIN_NB 3
-#define SPEED -0.2
-
-bool followLine()
-{
-  bool pinRight = analogRead(PIN_RIGHT) > 650;
-  bool pinLeft = analogRead(PIN_LEFT) > 650;
-  bool pinMiddle = analogRead(PIN_MIDDLE) > 650;
-
-  if (pinMiddle && !pinRight && !pinLeft)
-  {
-    MOTOR_SetSpeed(LEFT, SPEED);
-    MOTOR_SetSpeed(RIGHT, SPEED);
-    Serial.println("MIDDLE");
-    return true;
-  }
-
-  if (pinRight && !pinLeft)
-  {
-    MOTOR_SetSpeed(LEFT, 0);
-    MOTOR_SetSpeed(RIGHT, SPEED);
-    Serial.println("RIGHT");
-    return true;
-  }
-
-  if (pinLeft && !pinRight)
-  {
-    MOTOR_SetSpeed(RIGHT, 0);
-    MOTOR_SetSpeed(LEFT, SPEED);
-    Serial.println("LEFT");
-    return true;
-  }
-
-  if (pinLeft && pinRight && pinMiddle)
-  {
-    MOTOR_SetSpeed(RIGHT, 0);
-    MOTOR_SetSpeed(LEFT, 0);
-    Serial.println("MIDDLE");
-    return false;
-  }
-
-  return true;
-}
 //PUT THESE AT THE END
 void setup()
 {
@@ -213,12 +165,19 @@ void setup()
 void loop()
 {
   // put your main code here, to run repeatedly:
-  if (ROBUS_IsBumper(2))
-  {
-    do
-    {
-      //wait
-      delay(200);
-    } while (followLine());
-  }
+  SERVO_Disable(0);
+  if(ROBUS_IsBumper(0)) {
+    fermerAvecServomoteur();
+    ENCODER_Reset(0);
+    ENCODER_Reset(1);
+    MOTOR_SetSpeed(1, -0.3);
+    MOTOR_SetSpeed(0, -0.3);
+
+    delay(1000);
+
+
+    MOTOR_SetSpeed(0, 0);
+    MOTOR_SetSpeed(1, 0);
+    ouvrirAvecServomoteur();
+  } 
 }

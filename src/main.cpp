@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <LibRobus.h>
+#include <Wire.h>
 #include <Adafruit_TCS34725.h>
 
 #define PIN_RIGHT A0
@@ -13,8 +14,8 @@
 #define ROUGE 3
 
 #define PIN_NB 3
-#define SPEED_FORWARD 0.2
-#define SPEED_BACK -0.2
+#define SPEED_FORWARD 0.3
+#define SPEED_BACK -0.3
 
 Adafruit_TCS34725 colorSensor = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_50MS,TCS34725_GAIN_4X);
 
@@ -129,6 +130,16 @@ void tourner2Roue(unsigned int angle, int roue)
   MOTOR_SetSpeed(roue2, 0);
 }
 
+void Move(float speed) {
+  MOTOR_SetSpeed(LEFT, speed);
+  MOTOR_SetSpeed(RIGHT, speed);
+}
+
+void StopMove() {
+  MOTOR_SetSpeed(LEFT, 0);
+  MOTOR_SetSpeed(RIGHT, 0);
+}
+
 bool getPinState(int8_t pin)
 {
   return analogRead(pin) > 750;
@@ -137,159 +148,102 @@ bool getPinState(int8_t pin)
 void followLine(float speed)
 {
   bool pinRight = getPinState(PIN_RIGHT);
-  bool pinLeft = getPinState(PIN_LEFT);
   bool pinMiddle = getPinState(PIN_MIDDLE);
-
-  if (pinMiddle && !pinRight && !pinLeft)
+  bool pinLeft = getPinState(PIN_LEFT);
+  
+  if (!pinRight && pinMiddle && !pinLeft)
   {
     MOTOR_SetSpeed(LEFT, speed);
     MOTOR_SetSpeed(RIGHT, speed);
-    //Serial.println("MIDDLE");
   }
 
   if (pinRight && !pinLeft)
   {
-    if(speed < 0) {
+    //if(speed < 0) {
       MOTOR_SetSpeed(LEFT, speed);
       MOTOR_SetSpeed(RIGHT, 0);
-    } else {
+   /* } else {
       MOTOR_SetSpeed(RIGHT, speed);
       MOTOR_SetSpeed(LEFT, 0);
-    }
-    //Serial.println("RIGHT");
+    }*/
   }
 
   if (pinLeft && !pinRight)
   {
-    if(speed < 0) {
+    //if(speed < 0) {
       MOTOR_SetSpeed(RIGHT, speed);
       MOTOR_SetSpeed(LEFT, 0);
-    } else {
+    /*} else {
       MOTOR_SetSpeed(LEFT, speed);
       MOTOR_SetSpeed(RIGHT, 0);
-    }
-    
-    
-    
-    //Serial.println("LEFT");
+    }*/
   }
 }
 
-//COLOR
-//Vert = 0
-//Bleu = 1
-//Jaune = 2
-//Rouge = 3
 void goToColor(int color)
 {
-  MOTOR_SetSpeed(RIGHT, SPEED_BACK);
-  MOTOR_SetSpeed(LEFT, SPEED_BACK);
-
-  do
-  {
-    delay(200);
-  } while (!getPinState(PIN_RIGHT) && !getPinState(PIN_LEFT) && !getPinState(PIN_MIDDLE));
-
   switch (color)
   {
   case BLEU:
-    tourner2Roue(90, 1);
+    tourner2Roue(90, 0);
+    Move(SPEED_FORWARD);
+    delay(2200);
+
+    StopMove();
+
+    tourner2Roue(45, 0);
+    
+    Move(SPEED_FORWARD);
+    delay(1800);
+    StopMove();
+    
+    do{
+      delay(100);
+      Move(SPEED_FORWARD);
+    }while(distanceBalle() > 8);//détecte la balle
+
+    StopMove(); 
+    
+    do{
+      fermerAvecServomoteur();
+      delay(500);
+    }while(!ROBUS_IsBumper(FRONT));
+
+    tourner2Roue(180,0);
+
+    Move(SPEED_FORWARD);
+
+    delay(4400);
+
+    StopMove();
+
+    delay(300);
+
+    ouvrirAvecServomoteur();
+
+    Move(SPEED_BACK);
+
+    delay(3000);
+
+    StopMove();
+    tourner2Roue(65,1);
+
+    Move(SPEED_FORWARD*2);
+
+    delay(1400);
+
+    StopMove();
+
     break;
 
   case JAUNE:
-    tourner2Roue(90, 0);
+    tourner2Roue(90, 1);
+    Move(SPEED_FORWARD);
     break;
 
   default:
     break;
   }
-
-  /*int distance;
-  MOTOR_SetSpeed(RIGHT, SPEED_FORWARD);
-  MOTOR_SetSpeed(LEFT, SPEED_FORWARD);
-
-  do
-  {
-    delay(200);
-  } while (!getPinState(PIN_RIGHT) && !getPinState(PIN_LEFT) && !getPinState(PIN_MIDDLE));
-
-  MOTOR_SetSpeed(RIGHT, 0);
-  MOTOR_SetSpeed(LEFT, 0);
-
-  switch (color)
-  {
-  case VERT:
-    tourner2Roue(45, 0);
-    break;
-
-  case BLEU:
-    tourner2Roue(135, 0);
-    break;
-
-  case JAUNE:
-    tourner2Roue(135, 1);
-    break;
-
-  case ROUGE:
-    tourner2Roue(52, 1);
-    break;
-
-  default:
-    break;
-  }*/
-
-  MOTOR_SetSpeed(RIGHT, -0.3);
-  MOTOR_SetSpeed(LEFT, -0.3);
-
-  do
-  {
-    followLine(-0.3);
-    delay(200);
-  } while (getColorFromSensor() != color);
-
-  AX_BuzzerON(50,350);
-
-  /*do{
-    distance = distanceBalle();
-  } while (distance > 10);
-  
-  MOTOR_SetSpeed(RIGHT, 0);
-  MOTOR_SetSpeed(LEFT, 0);
-
-  do {
-    fermerAvecServomoteur();
-    delay(300);
-  } while(ROBUS_IsBumper(FRONT));
-
-  MOTOR_SetSpeed(RIGHT, SPEED_BACK);
-  MOTOR_SetSpeed(LEFT, SPEED_BACK);
-
-  do
-  {
-    followLine(SPEED_BACK);
-    delay(200);
-  } while (!getPinState(PIN_RIGHT) && !getPinState(PIN_LEFT) && !getPinState(PIN_MIDDLE));
-
-  tourner2Roue(180, 0);
-
-  ouvrirAvecServomoteur();
-
-  MOTOR_SetSpeed(RIGHT, SPEED_BACK);
-  MOTOR_SetSpeed(LEFT, SPEED_BACK);
-
-  delay(750);
-
-  MOTOR_SetSpeed(RIGHT, 0);
-  MOTOR_SetSpeed(LEFT, 0);*/
-}
-
-void Move() {
-  MOTOR_SetSpeed(LEFT, 0.15);
-  MOTOR_SetSpeed(RIGHT, 0.15);
-}
-void StopMove() {
-  MOTOR_SetSpeed(LEFT, 0);
-  MOTOR_SetSpeed(RIGHT, 0);
 }
 
 void setup()
@@ -313,29 +267,69 @@ void setup()
 
 void loop()
 {
-  if(ROBUS_IsBumper(FRONT)) {
-    Serial.print("Couleur : ");
-      int color;
-      color = getColorFromSensor();
-      switch (color)
-      {
-      case BLEU:
-        Serial.println("Bleu");
-        break;
-        case ROUGE:
-        Serial.println("ROUGE");
-        break;
-        case VERT:
-        Serial.println("VERT");
-        break;
-        case JAUNE:
-        Serial.println("JAUNE");
-        break;
-      
-      default:
-      Serial.println("Erreur");
-        break;
-      }
+  if(ROBUS_IsBumper(RIGHT)) {
+    
+    do{
+      delay(100);
+      Move(SPEED_FORWARD);
+    }while(distanceBalle() > 10);//détecte la balle
+
+    StopMove(); 
+    
+    do{
+      fermerAvecServomoteur();
+      delay(500);
+    }while(!ROBUS_IsBumper(FRONT));
+    /*Serial.print("Couleur : ");
+    int color;
+    color = getColorFromSensor();
+    switch (color)
+    {
+    case BLEU:
+      Serial.println("Bleu");
+      break;
+      case ROUGE:
+      Serial.println("ROUGE");
+      break;
+      case VERT:
+      Serial.println("VERT");
+      break;
+      case JAUNE:
+      Serial.println("JAUNE");
+      break;
+    
+    default:
+    Serial.println("Erreur");
+      break;
+    }*/
+    
+    /*Serial.print("Distance : ");
+    Serial.println(distanceBalle());
+    delay(200);*/
+
+    /*Serial.print("Gauche : ");
+    Serial.println(getPinState(PIN_LEFT));
+    Serial.print("Droite : ");
+    Serial.println(getPinState(PIN_RIGHT));
+     Serial.print("Milieu : ");
+    Serial.println(getPinState(PIN_MIDDLE));
+
+    delay(500);*/
+    /*Serial.println("Start");
+    do {
+      Serial.println("lol");
+    } while(!getPinState(PIN_RIGHT) || !getPinState(PIN_MIDDLE) || !getPinState(PIN_LEFT));
+    Serial.println("Finish");
+    
+    
+    Serial.println("Start");
+    do {
+      Serial.println("lol");
+    } while(!getPinState(PIN_RIGHT) && !getPinState(PIN_MIDDLE) && !getPinState(PIN_LEFT));
+    Serial.println("Finish");*/
+  }
+  if(ROBUS_IsBumper(LEFT)) {
+    ouvrirAvecServomoteur();
   }
   if (ROBUS_IsBumper(REAR))
   {
@@ -349,22 +343,23 @@ void loop()
       }
       delay(150);
       
-    }while(!x);
-    StopMove();*/
-    goToColor(BLEU);
-    /*Serial.print("Gauche : ");
-    Serial.println(getPinState(PIN_LEFT));
-    Serial.print("Droite : ");
-    Serial.println(getPinState(PIN_RIGHT));
-     Serial.print("Milieu : ");
-    Serial.println(getPinState(PIN_MIDDLE));
+    }while(!x);*/
+    /*Serial.println("Start");
+    Move(SPEED_FORWARD);
+    
+    do{
+      delay(100);
+    }while(distanceBalle() > 9);//détecte la balle
 
-    Serial.print("Gauche In: ");
-    Serial.println(analogRead(PIN_LEFT));
-    Serial.print("Droite In: ");
-    Serial.println(analogRead(PIN_RIGHT));
-     Serial.print("Milieu In: ");
-    Serial.println(analogRead(PIN_MIDDLE));
-    delay(500);*/
+    StopMove(); 
+    
+    do{
+      fermerAvecServomoteur();
+      delay(500);
+    }while(!ROBUS_IsBumper(FRONT));
+
+    Serial.println("Finish");*/
+
+    goToColor(BLEU);
   }
 }

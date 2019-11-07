@@ -151,7 +151,7 @@ void goToColor(int color)
     move(0.0);
     delay(300);
 
-    tourner2Roue(135, LEFT);
+    tourner2Roue(120, LEFT);
 
     delay(200);
 
@@ -186,7 +186,44 @@ void goToColor(int color)
     break;
 
   case 2:
-    tourner2Roue(45, 1);
+    delay(300);
+    move(-0.2);
+    delay(2000);
+    move(0.0);
+    delay(300);
+
+    tourner2Roue(130, RIGHT);
+
+    delay(200);
+
+    move(SPEED);
+
+    delay(3000);
+
+    tourner2Roue(30, RIGHT);
+
+    do
+    {
+      delay(100);
+    } while (followLine());
+
+    move(0.0);
+
+    delay(200);
+
+    move(0.2);
+
+    delay(500);
+
+    move(0.0);
+
+    tourner2Roue(170, LEFT);
+
+    delay(200);
+
+    move(0.2);
+
+    delay(1000);
     break;
 
   case 3:
@@ -196,7 +233,7 @@ void goToColor(int color)
     move(0.0);
     delay(300);
 
-    tourner2Roue(30, RIGHT);
+    tourner2Roue(40, RIGHT);
 
     delay(200);
 
@@ -234,46 +271,64 @@ void goToColor(int color)
   SERVO_SetAngle(0, 80);
 }
 
+int distanceBalle() {
+  int resultatCm;
+  resultatCm=(6787.0/(analogRead(PIN_DISTANCE)-3.0))-4.0;
+  return resultatCm;
+}
+
+void jeChercheLaBalle()
+{
+  MOTOR_SetSpeed(RIGHT, 0.1);
+  MOTOR_SetSpeed(LEFT, -0.1);
+
+  while (distanceBalle() > 45)
+  {
+    Serial.println(distanceBalle());
+    delay(50);
+    //wait
+  }
+  Serial.print("Trouver, distance: ");
+  Serial.println(distanceBalle());
+  delay(200);
+}
+
+void jeParsLaChercher()
+{
+  move(0.0);
+
+  delay(200);
+  move(0.2);
+
+  while (distanceBalle() > 10)
+  {
+    Serial.print("J'avance, distance: ");
+    Serial.println(distanceBalle());
+    delay(50);
+    //wait
+  }
+
+  delay(600);
+  move(0.0);
+}
+
+void jeLaPrends()
+{
+  Serial.print("Je la prends");
+  SERVO_SetAngle(0, 125);
+  delay(500);
+}
+
 void goGrabBall()
 {
+  Serial.println("Début");
   delay(200);
   tourner2Roue(45, 0);
   delay(200);
 
-  MOTOR_SetSpeed(RIGHT, 0.2);
-  MOTOR_SetSpeed(LEFT, -0.2);
-
-  Serial.println(analogRead(PIN_DISTANCE));
-  while (analogRead(PIN_DISTANCE) < 150)
-  {
-    delay(50);
-    //wait
-  }
-
-  delay(100);
-  move(0.0);
-
-  delay(200);
-
-  move(0.2);
-
-  while (analogRead(PIN_DISTANCE) < 300)
-  {
-    delay(50);
-    //wait
-  }
-
-  while (analogRead(PIN_DISTANCE) >= 200)
-  {
-    delay(50);
-    //wait
-  }
-
-  delay(100);
-  move(0.0);
-
-  SERVO_SetAngle(0, 125);
-  delay(500);
+  jeChercheLaBalle();
+  jeParsLaChercher();
+  jeLaPrends();
 }
 
 void setup()
@@ -290,13 +345,38 @@ void setup()
 
 void loop()
 {
-  delay(1000);
-  goGrabBall();
+  if(ROBUS_IsBumper(LEFT))
+  {  
+    delay(1000);
+    goGrabBall();
 
-  goToColor(1);
+    goToColor(1);
+  }
 
-  while (1)
-  {
-    delay(60000);
+  if(ROBUS_IsBumper(RIGHT))
+  {  
+    //Rouge Ok
+    delay(1000);
+    goGrabBall();
+
+    goToColor(3);
+  }
+
+  if(ROBUS_IsBumper(FRONT))
+  {  
+    //Vert Ok
+    delay(1000);
+    goGrabBall();
+
+    goToColor(0);
+  }
+
+  if(ROBUS_IsBumper(REAR))
+  {  
+    //Jaune Ok
+    delay(1000);
+    goGrabBall();
+
+    goToColor(2);
   }
 }

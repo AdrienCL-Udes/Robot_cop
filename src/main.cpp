@@ -187,7 +187,7 @@ void goToColor(int color)
     tourner2Roue(90,1);
     delay(300);
     Move(SPEED_BACK-0.1);
-    delay(3300);
+    delay(3250);
     StopMove();
     delay(300);
 
@@ -202,7 +202,11 @@ void goToColor(int color)
     tourner2Roue(65,0);
     Move(SPEED_FORWARD*2);
     delay(1800);
+    StopMove();
 
+    tourner2Roue(90,1);
+    Move(SPEED_FORWARD*2);
+    delay(600);
     StopMove();
 
     break;
@@ -210,7 +214,7 @@ void goToColor(int color)
   case JAUNE:
     tourner2Roue(90, 1);
     Move(SPEED_FORWARD);
-    delay(2200);
+    delay(2125);
 
     StopMove();
 
@@ -223,8 +227,8 @@ void goToColor(int color)
     do{
       delay(100);
       Move(SPEED_FORWARD);
-    }while(distanceBalle() > 8);//détecte la balle
-    delay(200);
+    }while(distanceBalle() > 9);//détecte la balle
+    delay(250);
 
     StopMove(); 
     for(int x = 0; x < 10; x++) {
@@ -235,17 +239,20 @@ void goToColor(int color)
       }
     }
 
-    tourner2Roue(45,1);
+    Move(SPEED_BACK);
+    delay(200);
+
+    tourner2Roue(40,1);
     delay(300);
     Move(SPEED_BACK-0.1);
-    delay(2600);
+    delay(2350);
     StopMove();
     delay(300);
 
     tourner2Roue(90,0);
     delay(300);
     Move(SPEED_BACK-0.1);
-    delay(3300);
+    delay(2900);
     StopMove();
     delay(300);
 
@@ -254,14 +261,18 @@ void goToColor(int color)
     delay(1000);
 
     Move(SPEED_BACK);
-    delay(1000);
+    delay(1300);
     StopMove();
     delay(300);
 
-    tourner2Roue(65,1);
+    tourner2Roue(75,1);
     Move(SPEED_FORWARD*2);
-    delay(1800);
+    delay(1600);
+    StopMove();
 
+    tourner2Roue(90,0);
+    Move(SPEED_FORWARD*2);
+    delay(1200);
     StopMove();
 
     break;
@@ -276,10 +287,10 @@ void goToColor(int color)
     tourner2Roue(100, 0);
     
     Move(SPEED_FORWARD);
-    delay(4350);
+    delay(4000);
     StopMove();
 
-    tourner2Roue(48, 1);
+    tourner2Roue(50, 1);
     
     Move(SPEED_FORWARD);
     delay(1800);
@@ -288,9 +299,9 @@ void goToColor(int color)
     do{
       delay(100);
       Move(SPEED_FORWARD);
-    }while(distanceBalle() > 8);//détecte la balle
+    }while(distanceBalle() > 9);//détecte la balle
 
-    delay(200);
+    delay(250);
 
     StopMove(); 
     
@@ -302,17 +313,20 @@ void goToColor(int color)
       }
     }
 
+    Move(SPEED_BACK);
+    delay(200);
+
     tourner2Roue(45,0);
     delay(300);
     Move(SPEED_BACK-0.1);
-    delay(2650);
+    delay(2350);
     StopMove();
     delay(300);
 
     tourner2Roue(85,1);
     delay(300);
     Move(SPEED_BACK-0.1);
-    delay(3100);
+    delay(2900);
     StopMove();
     delay(300);
 
@@ -326,7 +340,12 @@ void goToColor(int color)
 
     tourner2Roue(65,1);
     Move(SPEED_FORWARD*2);
-    delay(1800);
+    delay(1600);
+    StopMove();
+
+    tourner2Roue(90,0);
+    Move(SPEED_FORWARD*2);
+    delay(600);
     StopMove();
 
     break;
@@ -341,10 +360,10 @@ void goToColor(int color)
     tourner2Roue(100, 1);
     
     Move(SPEED_FORWARD);
-    delay(4050);
+    delay(4000);
     StopMove();
 
-    tourner2Roue(52, 0);
+    tourner2Roue(50, 0);
     
     Move(SPEED_FORWARD);
     delay(1800);
@@ -353,9 +372,9 @@ void goToColor(int color)
     do{
       delay(100);
       Move(SPEED_FORWARD);
-    }while(distanceBalle() > 8);//détecte la balle
+    }while(distanceBalle() > 9);//détecte la balle
 
-    delay(200);
+    delay(250);
 
     StopMove(); 
     
@@ -367,17 +386,20 @@ void goToColor(int color)
       }
     }
 
+    Move(SPEED_BACK);
+    delay(200);
+
     tourner2Roue(45,1);
     delay(300);
     Move(SPEED_BACK-0.1);
-    delay(2550);
+    delay(2400);
     StopMove();
     delay(300);
 
-    tourner2Roue(85,0);
+    tourner2Roue(92,0);
     delay(300);
     Move(SPEED_BACK-0.1);
-    delay(3100);
+    delay(2900);
     StopMove();
     delay(300);
 
@@ -391,7 +413,7 @@ void goToColor(int color)
 
     tourner2Roue(65,0);
     Move(SPEED_FORWARD*2);
-    delay(1800);
+    delay(1675);
     StopMove();
 
     break;

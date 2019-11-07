@@ -188,17 +188,17 @@ void goToColor(int color)
   case 2:
     delay(300);
     move(-0.2);
-    delay(2000);
+    delay(2300);
     move(0.0);
     delay(300);
 
-    tourner2Roue(130, RIGHT);
+    tourner2Roue(115, RIGHT);
 
     delay(200);
 
     move(SPEED);
 
-    delay(3000);
+    delay(3400);
 
     tourner2Roue(30, RIGHT);
 
@@ -288,6 +288,7 @@ void jeChercheLaBalle()
     delay(50);
     //wait
   }
+  delay(100);
   Serial.print("Trouver, distance: ");
   Serial.println(distanceBalle());
   delay(200);
@@ -347,6 +348,7 @@ void loop()
 {
   if(ROBUS_IsBumper(LEFT))
   {  
+    //Ok
     delay(1000);
     goGrabBall();
 

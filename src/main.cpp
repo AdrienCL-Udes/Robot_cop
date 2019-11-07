@@ -161,16 +161,16 @@ void bleu() {
 
     tourner2Roue(43, 0); //tourne vers la droite de 45
 
-    Move(SPEED_FORWARD); //bouge du delay
+    Move(SPEED_FORWARD-0.1); //bouge du delay
     delay(1800);
     StopMove(); //arrete de bouger pour laisser du temps au roue
 
-    for(int x = 0; x <15; x++)
+    for(int x = 0; x <20; x++)
     {
       delay(100);
-      Move(SPEED_FORWARD);
+      Move(SPEED_FORWARD-0.1);
       if(distanceBalle() < 8) {
-        x = 15;
+        x = 20;
       }
     } //détecte la balle
     delay(250);
@@ -236,13 +236,13 @@ void rouge() {
 
     tourner2Roue(45, 1);
 
-    Move(SPEED_FORWARD);
+    Move(SPEED_FORWARD-0.1);
     delay(1800);
 
     for(int x = 0; x <15; x++)
     {
       delay(100);
-      Move(SPEED_FORWARD);
+      Move(SPEED_FORWARD-0.1);
       if(distanceBalle() < 9) {
         x = 15;
       }
@@ -301,7 +301,7 @@ void rouge() {
 
     tourner2Roue(90, 0);
     Move(SPEED_FORWARD * 2);
-    delay(700);
+    delay(900);
     StopMove();
 }
 
@@ -315,18 +315,18 @@ void vert() {
     tourner2Roue(90, 1);
 
     Move(SPEED_FORWARD);
-    delay(3750);
+    delay(3790);
     StopMove();
 
     tourner2Roue(50, 0);
 
-    Move(SPEED_FORWARD);
+    Move(SPEED_FORWARD-0.1);
     delay(1800);
 
     for(int x = 0; x <15; x++)
     {
       delay(100);
-      Move(SPEED_FORWARD);
+      Move(SPEED_FORWARD-0.1);
       if(distanceBalle() < 9) {
         x = 15;
       }
@@ -393,16 +393,16 @@ void jaune() {
 
     tourner2Roue(45, 1);
 
-    Move(SPEED_FORWARD);
+    Move(SPEED_FORWARD-0.1);
     delay(1800);
     StopMove();
 
-    for(int x = 0; x <15; x++)
+    for(int x = 0; x <20; x++)
     {
       delay(100);
-      Move(SPEED_FORWARD);
+      Move(SPEED_FORWARD-0.1);
       if(distanceBalle() < 9) {
-        x = 15;
+        x = 20;
       }
     } //détecte la balle
     delay(325);
@@ -474,7 +474,15 @@ void loop()
 {
   if (ROBUS_IsBumper(REAR))
   {
+    vert();
+  }
+  if(ROBUS_IsBumper(LEFT)) {
+    rouge();
+  } if(ROBUS_IsBumper(RIGHT)){
     bleu();
+  }
+  if(ROBUS_IsBumper(FRONT)){
+    jaune();
   }
   /*Serial.print("Couleur : ");
     int color;

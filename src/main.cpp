@@ -165,11 +165,14 @@ void bleu() {
     delay(1800);
     StopMove(); //arrete de bouger pour laisser du temps au roue
 
-    do
-    { //bouge vers la balle jusqu'à ce qu'il le détecte à une distance de 8
+    for(int x = 0; x <15; x++)
+    {
       delay(100);
       Move(SPEED_FORWARD);
-    } while (distanceBalle() > 8); //détecte la balle
+      if(distanceBalle() < 8) {
+        x = 15;
+      }
+    } //détecte la balle
     delay(250);
 
     StopMove();
@@ -200,7 +203,7 @@ void bleu() {
     tourner2Roue(83, 1); //tourne de 90 vers la gauche
     delay(300);
     Move(SPEED_BACK - 0.1); //bouge du delay
-    delay(3200);
+    delay(3125);
     StopMove();
     delay(300);
 
@@ -228,19 +231,22 @@ void rouge() {
     tourner2Roue(93, 0);
 
     Move(SPEED_FORWARD);
-    delay(4350);
+    delay(3900);
     StopMove();
 
-    tourner2Roue(42, 1);
+    tourner2Roue(45, 1);
 
     Move(SPEED_FORWARD);
     delay(1800);
 
-    do
+    for(int x = 0; x <15; x++)
     {
       delay(100);
       Move(SPEED_FORWARD);
-    } while (distanceBalle() > 9); //détecte la balle
+      if(distanceBalle() < 9) {
+        x = 15;
+      }
+    } //détecte la balle
 
     delay(300);
 
@@ -269,14 +275,14 @@ void rouge() {
     tourner2Roue(45, 0);
     delay(300);
     Move(SPEED_BACK - 0.1);
-    delay(2700);
+    delay(2900);
     StopMove();
     delay(300);
 
-    tourner2Roue(89, 1);
+    tourner2Roue(91, 1);
     delay(300);
     Move(SPEED_BACK - 0.1);
-    delay(3100);
+    delay(2900);
     StopMove();
     delay(300);
 
@@ -317,11 +323,14 @@ void vert() {
     Move(SPEED_FORWARD);
     delay(1800);
 
-    do
+    for(int x = 0; x <15; x++)
     {
       delay(100);
       Move(SPEED_FORWARD);
-    } while (distanceBalle() > 9); //détecte la balle
+      if(distanceBalle() < 9) {
+        x = 15;
+      }
+    } //détecte la balle
 
     delay(300);
 
@@ -354,7 +363,7 @@ void vert() {
     StopMove();
     delay(300);
 
-    tourner2Roue(95, 0);
+    tourner2Roue(97, 0);
     delay(300);
     Move(SPEED_BACK - 0.1);
     delay(3200);
@@ -388,11 +397,14 @@ void jaune() {
     delay(1800);
     StopMove();
 
-    do
+    for(int x = 0; x <15; x++)
     {
       delay(100);
       Move(SPEED_FORWARD);
-    } while (distanceBalle() > 9); //détecte la balle
+      if(distanceBalle() < 9) {
+        x = 15;
+      }
+    } //détecte la balle
     delay(325);
 
     StopMove();
@@ -419,49 +431,32 @@ void jaune() {
     tourner2Roue(40, 1);
     delay(300);
     Move(SPEED_BACK - 0.1);
-    delay(2450);
+    delay(2525);
     StopMove();
     delay(300);
 
     tourner2Roue(103, 0);
     delay(300);
     Move(SPEED_BACK - 0.1);
-    delay(3250);
+    delay(3275);
     StopMove();
     delay(300);
 
     ouvrirAvecServomoteur();
-
-    int pulseEncodeur = 0, pulse;
-    ENCODER_Reset(1);
-
-    pulse = calculerNbPulse(20 / 2, 7.62 / 2, 19.3);
-
-    MOTOR_SetSpeed(1, 0.1);
-    MOTOR_SetSpeed(0, -0.1);
-
-    while (pulseEncodeur < pulse - 50)
-    {
-      pulseEncodeur = ENCODER_Read(1);
-    }
-
-    StopMove();
-
-    delay(1000);
 
     Move(SPEED_BACK);
     delay(1500);
     StopMove();
     delay(300);
 
-    tourner2Roue(55, 1);
+    tourner2Roue(75, 1);
     Move(SPEED_FORWARD * 2);
     delay(1600);
     StopMove();
 
     tourner2Roue(90, 0);
     Move(SPEED_FORWARD * 2);
-    delay(1200);
+    delay(900);
     StopMove();
 }
 
@@ -477,21 +472,9 @@ void setup()
 
 void loop()
 {
-  if (ROBUS_IsBumper(RIGHT))
-  {
-    rouge();
-  }
-  if (ROBUS_IsBumper(LEFT))
-  {
-    bleu();
-  }
   if (ROBUS_IsBumper(REAR))
   {
-    jaune();
-  }
-  if (ROBUS_IsBumper(FRONT))
-  {
-    vert();
+    bleu();
   }
   /*Serial.print("Couleur : ");
     int color;

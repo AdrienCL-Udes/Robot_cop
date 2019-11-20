@@ -60,27 +60,17 @@ Adafruit_TCS34725 colorSensor = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_50MS,
 }*/
 
 //Cette fonction permet de faire tourner le servomoteur à un angle de 180
-void ouvrirAvecServomoteur()
+void ouvrirAvecServomoteur(int i)
 {
-  SERVO_Enable(0);
-  for (int i = 155; i > 60; i = i - 5)
-  {
-    SERVO_SetAngle(0, i);
-    delay(45);
-  }
-  SERVO_Disable(0);
+  SERVO_SetAngle(0, i);
+  delay(1000);
 }
 
 //Cette fonction permet de faire tourner le servomoteur à un angle de 0
-void fermerAvecServomoteur()
+void fermerAvecServomoteur(int i)
 {
-  SERVO_Enable(0);
-  for (int i = 60; i < 155; i = i + 5)
-  {
-    SERVO_SetAngle(0, i);
-    delay(10);
-  }
-  SERVO_Disable(0);
+  SERVO_SetAngle(0, i);
+  delay(1000);
 }
 
 int distanceBalle()
@@ -147,388 +137,33 @@ void StopMove()
   delay(200);
 }
 
-bool getPinState(int8_t pin)
-{
-  return analogRead(pin) > 750;
-}
-
-void bleu() {
-  tourner2Roue(90, 0); //Tourne vers la droite de 90
-    Move(SPEED_FORWARD); //bouge du delay
-    delay(2150);
-
-    StopMove(); //arrete de bouger pour laisser du temps au roue
-
-    tourner2Roue(43, 0); //tourne vers la droite de 45
-
-    Move(SPEED_FORWARD-0.1); //bouge du delay
-    delay(1800);
-    StopMove(); //arrete de bouger pour laisser du temps au roue
-
-    for(int x = 0; x <20; x++)
-    {
-      delay(100);
-      Move(SPEED_FORWARD-0.1);
-      if(distanceBalle() < 8) {
-        x = 20;
-      }
-    } //détecte la balle
-    delay(250);
-
-    StopMove();
-    for (int x = 0; x < 10; x++)
-    { //ferme la pince jusqu'à ce qu'il touche le bumper avant
-      fermerAvecServomoteur();
-      delay(500);
-      if (ROBUS_IsBumper(FRONT))
-      {
-        x = 11;
-      }
-      if (x == 9)
-      {
-        delay(1000);
-        SERVO_Enable(0);
-        SERVO_SetAngle(0, 165);
-        delay(1000);
-      }
-    }
-
-    tourner2Roue(45, 0); //tourne de 45 vers la droite
-    delay(300);
-    Move(SPEED_BACK - 0.1); //bouge du delay
-    delay(2550);
-    StopMove();
-    delay(300);
-
-    tourner2Roue(83, 1); //tourne de 90 vers la gauche
-    delay(300);
-    Move(SPEED_BACK - 0.1); //bouge du delay
-    delay(3125);
-    StopMove();
-    delay(300);
-
-    ouvrirAvecServomoteur(); //ouvre la pince
-    delay(1000);
-
-    Move(SPEED_BACK); //bouge du delay
-    delay(1000);
-    StopMove();
-    delay(300);
-
-    tourner2Roue(65, 0); //tourne à 65 vers la droite
-    Move(SPEED_FORWARD * 2);
-    delay(1800);
-    StopMove();
-}
-
-void rouge() {
-  tourner2Roue(90, 1);
-    Move(SPEED_FORWARD);
-    delay(2100);
-
-    StopMove();
-
-    tourner2Roue(93, 0);
-
-    Move(SPEED_FORWARD);
-    delay(3900);
-    StopMove();
-
-    tourner2Roue(45, 1);
-
-    Move(SPEED_FORWARD-0.1);
-    delay(1800);
-
-    for(int x = 0; x <15; x++)
-    {
-      delay(100);
-      Move(SPEED_FORWARD-0.1);
-      if(distanceBalle() < 9) {
-        x = 15;
-      }
-    } //détecte la balle
-
-    delay(300);
-
-    StopMove();
-
-    for (int x = 0; x < 10; x++)
-    {
-      fermerAvecServomoteur();
-      delay(500);
-      if (ROBUS_IsBumper(FRONT))
-      {
-        x = 11;
-      }
-      if (x == 9)
-      {
-        delay(1000);
-        SERVO_Enable(0);
-        SERVO_SetAngle(0, 165);
-        delay(1000);
-      }
-    }
-
-    Move(SPEED_BACK);
-    delay(200);
-
-    tourner2Roue(45, 0);
-    delay(300);
-    Move(SPEED_BACK - 0.1);
-    delay(2900);
-    StopMove();
-    delay(300);
-
-    tourner2Roue(91, 1);
-    delay(300);
-    Move(SPEED_BACK - 0.1);
-    delay(2900);
-    StopMove();
-    delay(300);
-
-    ouvrirAvecServomoteur();
-    delay(1000);
-
-    Move(SPEED_BACK);
-    delay(1400);
-    StopMove();
-    delay(300);
-
-    tourner2Roue(65, 1);
-    Move(SPEED_FORWARD * 2);
-    delay(1800);
-    StopMove();
-
-    tourner2Roue(90, 0);
-    Move(SPEED_FORWARD * 2);
-    delay(900);
-    StopMove();
-}
-
-void vert() {
-  tourner2Roue(90, 0);
-    Move(SPEED_FORWARD);
-    delay(2100);
-
-    StopMove();
-
-    tourner2Roue(90, 1);
-
-    Move(SPEED_FORWARD);
-    delay(3790);
-    StopMove();
-
-    tourner2Roue(50, 0);
-
-    Move(SPEED_FORWARD-0.1);
-    delay(1800);
-
-    for(int x = 0; x <15; x++)
-    {
-      delay(100);
-      Move(SPEED_FORWARD-0.1);
-      if(distanceBalle() < 9) {
-        x = 15;
-      }
-    } //détecte la balle
-
-    delay(300);
-
-    StopMove();
-
-    for (int x = 0; x < 10; x++)
-    {
-      fermerAvecServomoteur();
-      delay(500);
-      if (ROBUS_IsBumper(FRONT))
-      {
-        x = 11;
-      }
-      if (x == 9)
-      {
-        delay(1000);
-        SERVO_Enable(0);
-        SERVO_SetAngle(0, 165);
-        delay(1000);
-      }
-    }
-
-    Move(SPEED_BACK);
-    delay(200);
-
-    tourner2Roue(45, 1);
-    delay(300);
-    Move(SPEED_BACK - 0.1);
-    delay(2600);
-    StopMove();
-    delay(300);
-
-    tourner2Roue(97, 0);
-    delay(300);
-    Move(SPEED_BACK - 0.1);
-    delay(3200);
-    StopMove();
-    delay(300);
-
-    ouvrirAvecServomoteur();
-    delay(1000);
-
-    Move(SPEED_BACK);
-    delay(1400);
-    StopMove();
-    delay(300);
-
-    tourner2Roue(65, 0);
-    Move(SPEED_FORWARD * 2);
-    delay(1800);
-    StopMove();
-}
-
-void jaune() {
-  tourner2Roue(90, 1);
-    Move(SPEED_FORWARD);
-    delay(2125);
-
-    StopMove();
-
-    tourner2Roue(45, 1);
-
-    Move(SPEED_FORWARD-0.1);
-    delay(1800);
-    StopMove();
-
-    for(int x = 0; x <20; x++)
-    {
-      delay(100);
-      Move(SPEED_FORWARD-0.1);
-      if(distanceBalle() < 9) {
-        x = 20;
-      }
-    } //détecte la balle
-    delay(325);
-
-    StopMove();
-    for (int x = 0; x < 10; x++)
-    {
-      fermerAvecServomoteur();
-      delay(500);
-      if (ROBUS_IsBumper(FRONT))
-      {
-        x = 11;
-      }
-      if (x == 9)
-      {
-        delay(1000);
-        SERVO_Enable(0);
-        SERVO_SetAngle(0, 165);
-        delay(1000);
-      }
-    }
-
-    Move(SPEED_BACK);
-    delay(200);
-
-    tourner2Roue(40, 1);
-    delay(300);
-    Move(SPEED_BACK - 0.1);
-    delay(2525);
-    StopMove();
-    delay(300);
-
-    tourner2Roue(103, 0);
-    delay(300);
-    Move(SPEED_BACK - 0.1);
-    delay(3275);
-    StopMove();
-    delay(300);
-
-    ouvrirAvecServomoteur();
-
-    Move(SPEED_BACK);
-    delay(1500);
-    StopMove();
-    delay(300);
-
-    tourner2Roue(75, 1);
-    Move(SPEED_FORWARD * 2);
-    delay(1600);
-    StopMove();
-
-    tourner2Roue(90, 0);
-    Move(SPEED_FORWARD * 2);
-    delay(900);
-    StopMove();
-}
-
 void setup()
 {
   BoardInit();
+  AudioInit();
   pinMode(PIN_RIGHT, INPUT_PULLUP);
   pinMode(PIN_LEFT, INPUT_PULLUP);
   pinMode(PIN_MIDDLE, INPUT_PULLUP);
   pinMode(PIN_DISTANCE, INPUT);
-  ouvrirAvecServomoteur();
+  SERVO_Enable(0);
 }
 
 void loop()
 {
   if (ROBUS_IsBumper(REAR))
   {
-    vert();
+    ouvrirAvecServomoteur(155);
+    Serial.println("lol");
   }
   if(ROBUS_IsBumper(LEFT)) {
-    rouge();
-  } if(ROBUS_IsBumper(RIGHT)){
-    bleu();
+      fermerAvecServomoteur(65);
   }
-  if(ROBUS_IsBumper(FRONT)){
-    jaune();
+  if(ROBUS_IsBumper(RIGHT)) {
+    Move(0.3);
+    while(distanceBalle() > 15) {
+        delay(250);
+    }
+    StopMove();
   }
-  /*Serial.print("Couleur : ");
-    int color;
-    color = getColorFromSensor();
-    switch (color)
-    {
-    case BLEU:
-      Serial.println("Bleu");
-      break;
-      case ROUGE:
-      Serial.println("ROUGE");
-      break;
-      case VERT:
-      Serial.println("VERT");
-      break;
-      case JAUNE:
-      Serial.println("JAUNE");
-      break;
-    
-    default:
-    Serial.println("Erreur");
-      break;
-    }*/
-
-  /*Serial.print("Distance : ");
-    Serial.println(distanceBalle());
-    delay(200);*/
-
-  /*Serial.print("Gauche : ");
-    Serial.println(getPinState(PIN_LEFT));
-    Serial.print("Droite : ");
-    Serial.println(getPinState(PIN_RIGHT));
-     Serial.print("Milieu : ");
-    Serial.println(getPinState(PIN_MIDDLE));
-
-    delay(500);*/
-  /*Serial.println("Start");
-    do {
-      Serial.println("lol");
-    } while(!getPinState(PIN_RIGHT) || !getPinState(PIN_MIDDLE) || !getPinState(PIN_LEFT));
-    Serial.println("Finish");
-    
-    
-    Serial.println("Start");
-    do {
-      Serial.println("lol");
-    } while(!getPinState(PIN_RIGHT) && !getPinState(PIN_MIDDLE) && !getPinState(PIN_LEFT));
-    Serial.println("Finish");*/
+  
 }

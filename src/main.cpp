@@ -19,46 +19,6 @@
 
 Adafruit_TCS34725 colorSensor = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_50MS, TCS34725_GAIN_4X);
 
-/*int getColorFromSensor() {
-  uint16_t red,green,blue, clear = 0;
-
-  int r = ROUGE; int g = VERT; int b = BLEU; int y = JAUNE;
-
-  colorSensor.enable();
-  colorSensor.getRawData(&red,&green,&blue,&clear);
-
-  if(red > green && red > blue)
-  {
-    if(red > 125 && green < 100 && blue < 105)
-    {
-      return r;
-    }
-  }
-  if(green > red && green > blue)
-  {
-    if(green <= 125 && green >= 110 && blue > 100)
-    {
-      return g;
-    }
-  }
-  if(blue > red && blue > green)
-  {
-    if(blue <= 160 && blue >= 135)
-    {
-      return b;
-    }
-    
-  }
-  if(red > blue && green > blue)
-  {
-    if(red >= 250 && green > 240)
-    {
-      return y;
-    }
-  }
-  return 1000;
-}*/
-
 //Cette fonction permet de faire tourner le servomoteur à un angle de 180
 void ouvrirAvecServomoteur(int i)
 {
@@ -165,5 +125,7 @@ void loop()
     }
     StopMove();
   }
-  
+  if(ROBUS_IsBumper(FRONT)) {
+    AX_BuzzerON(500, 1000);
+  }
 }

@@ -1,18 +1,81 @@
 #include <Arduino.h>
 #include <LibRobus.h>
+#include "SD.h"     //Lib to read SD card
+#include "TMRpcm.h" //Lib to play auido
+#include "SPI.h"    //SPI lib for SD card
 
-#define PIN_RIGHT A0
-#define PIN_LEFT A1
-#define PIN_MIDDLE A2
-#define PIN_DISTANCE A3
+/*
+Arduino Based Music Player
+ ** MOSI - pin 51 - jaune
+ ** MISO - pin 50***** - brun
+ ** SCK - pin 52 - orange
+ ** ss - pin 53 - blanc
+*/
+#define SPEAKER_PIN 11
+#define SD_PIN 53
 
-#define PIN_NB 3
-#define SPEED -0.2
+#define PIN_FOLLOWLINE A2
+#define PIN_DISTANCE A4 //Robot A // A3 //Robot B
 
-void move(float speed)
+#define PIN_NB 2
+#define SPEED_FORWARD 0.3
+#define SPEED_BACK -0.3
+
+TMRpcm music; //Lib object is named "music"
+
+void allumerled()
 {
-  MOTOR_SetSpeed(RIGHT, speed);
-  MOTOR_SetSpeed(LEFT, speed);
+  digitalWrite(22, HIGH);
+  digitalWrite(2, HIGH);
+  delay(250);
+  digitalWrite(2, LOW);
+  digitalWrite(3, HIGH);
+  delay(250);
+  digitalWrite(3, LOW);
+}
+
+//Fonction qui retourne 1 quand il detecte une ligne blanche
+//Aussi non, elle retourne 0
+int IsWhiteLine()
+{
+  if (analogRead(PIN_FOLLOWLINE) < 965 && analogRead(PIN_FOLLOWLINE) > 750)
+  {
+    return 1;
+  }
+  else
+  {
+    return 0;
+  }
+}
+
+//Cette fonction permet de faire tourner le servomoteur à un angle i entre 0 et 180
+void servomoteur(int i)
+{
+  SERVO_SetAngle(0, i);
+  delay(1000);
+}
+
+void ouvrirBras()
+{
+  SERVO_Enable(0);
+  servomoteur(165);
+  allumerled();
+  SERVO_Disable(0);
+}
+
+void fermerBras()
+{
+  SERVO_Enable(0);
+  servomoteur(65);
+  allumerled();
+  SERVO_Disable(0);
+}
+
+int distanceBalle()
+{
+  int resultatCm;
+  resultatCm = (6787.0 / (analogRead(PIN_DISTANCE) - 3.0)) - 4.0;
+  return resultatCm;
 }
 
 //Calcule le nombre de pulse que doit faire la roue selon les paramètres reçus par la fonction
@@ -25,9 +88,10 @@ float calculerNbPulse(int angle, float rayonRoue, float rayonArc)
 
   return nbPulse;
 }
+
 //Cette fonction fait tourner le robot avec les deux moteurs avec le sens et l'angle entré par l'utilisateur
 //roue = 0, le robot tourne vers la droite
-//+roue = 1, le robot tourne vers la gauche
+//roue = 1, le robot tourne vers la gauche
 //angle est en degré
 void tourner2Roue(unsigned int angle, int roue)
 {
@@ -55,330 +119,88 @@ void tourner2Roue(unsigned int angle, int roue)
 
   MOTOR_SetSpeed(roue, 0);
   MOTOR_SetSpeed(roue2, 0);
-}
-
-bool getPinState(int8_t pin)
-{
-  return analogRead(pin) > 650;
-}
-
-bool followLine()
-{
-  bool pinRight = getPinState(PIN_RIGHT);
-  bool pinLeft = getPinState(PIN_LEFT);
-  bool pinMiddle = getPinState(PIN_MIDDLE);
-
-  if (pinMiddle && !pinRight && !pinLeft)
-  {
-    move(SPEED);
-  }
-
-  if (pinRight && !pinLeft)
-  {
-    MOTOR_SetSpeed(RIGHT, 0);
-    MOTOR_SetSpeed(LEFT, SPEED);
-  }
-
-  if (pinLeft && !pinRight)
-  {
-    MOTOR_SetSpeed(LEFT, 0);
-    MOTOR_SetSpeed(RIGHT, SPEED);
-  }
-
-  if (!pinMiddle && !pinRight && !pinLeft)
-  {
-    MOTOR_SetSpeed(LEFT, SPEED);
-    MOTOR_SetSpeed(RIGHT, SPEED);
-  }
-
-  if (pinMiddle && pinRight && pinLeft)
-  {
-    return false;
-  }
-
-  return true;
-}
-
-//COLOR
-//Vert = 0
-//Bleu = 1
-//Jaune = 2
-//Rouge = 3
-void goToColor(int color)
-{
-  switch (color)
-  {
-  case 0:
-    delay(300);
-    move(-0.2);
-    delay(3000);
-    move(0.0);
-    delay(300);
-
-    tourner2Roue(45, LEFT);
-
-    delay(200);
-
-    move(SPEED);
-    do
-    {
-      delay(100);
-    } while (followLine());
-
-    move(0.0);
-
-    delay(200);
-
-    move(0.2);
-
-    delay(500);
-
-    move(0.0);
-
-    tourner2Roue(160, RIGHT);
-
-    delay(200);
-
-    move(0.2);
-
-    delay(1000);
-    break;
-
-  case 1:
-    delay(300);
-    move(-0.2);
-    delay(2000);
-    move(0.0);
-    delay(300);
-
-    tourner2Roue(120, LEFT);
-
-    delay(200);
-
-    move(SPEED);
-
-    delay(3000);
-
-    tourner2Roue(30, LEFT);
-
-    do
-    {
-      delay(100);
-    } while (followLine());
-
-    move(0.0);
-
-    delay(200);
-
-    move(0.2);
-
-    delay(500);
-
-    move(0.0);
-
-    tourner2Roue(160, RIGHT);
-
-    delay(200);
-
-    move(0.2);
-
-    delay(1000);
-    break;
-
-  case 2:
-    delay(300);
-    move(-0.2);
-    delay(2300);
-    move(0.0);
-    delay(300);
-
-    tourner2Roue(115, RIGHT);
-
-    delay(200);
-
-    move(SPEED);
-
-    delay(3400);
-
-    tourner2Roue(30, RIGHT);
-
-    do
-    {
-      delay(100);
-    } while (followLine());
-
-    move(0.0);
-
-    delay(200);
-
-    move(0.2);
-
-    delay(500);
-
-    move(0.0);
-
-    tourner2Roue(170, LEFT);
-
-    delay(200);
-
-    move(0.2);
-
-    delay(1000);
-    break;
-
-  case 3:
-    delay(300);
-    move(-0.2);
-    delay(3000);
-    move(0.0);
-    delay(300);
-
-    tourner2Roue(40, RIGHT);
-
-    delay(200);
-
-    move(SPEED);
-    do
-    {
-      delay(100);
-    } while (followLine());
-
-    move(0.0);
-
-    delay(200);
-
-    move(0.2);
-
-    delay(500);
-
-    move(0.0);
-
-    tourner2Roue(190, LEFT);
-
-    delay(200);
-
-    move(0.2);
-
-    delay(1000);
-    break;
-
-  default:
-    break;
-  }
-
-  move(0.0);
-  delay(200);
-  SERVO_SetAngle(0, 80);
-}
-
-int distanceBalle() {
-  int resultatCm;
-  resultatCm=(6787.0/(analogRead(PIN_DISTANCE)-3.0))-4.0;
-  return resultatCm;
-}
-
-void jeChercheLaBalle()
-{
-  MOTOR_SetSpeed(RIGHT, 0.1);
-  MOTOR_SetSpeed(LEFT, -0.1);
-
-  while (distanceBalle() > 45)
-  {
-    Serial.println(distanceBalle());
-    delay(50);
-    //wait
-  }
-  delay(100);
-  Serial.print("Trouver, distance: ");
-  Serial.println(distanceBalle());
   delay(200);
 }
 
-void jeParsLaChercher()
+void Move(float speed)
 {
-  move(0.0);
-
-  delay(200);
-  move(0.2);
-
-  while (distanceBalle() > 10)
-  {
-    Serial.print("J'avance, distance: ");
-    Serial.println(distanceBalle());
-    delay(50);
-    //wait
-  }
-
-  delay(600);
-  move(0.0);
+  MOTOR_SetSpeed(LEFT, speed);
+  MOTOR_SetSpeed(RIGHT, speed);
 }
 
-void jeLaPrends()
+void StopMove()
 {
-  Serial.print("Je la prends");
-  SERVO_SetAngle(0, 125);
-  delay(500);
-}
-
-void goGrabBall()
-{
-  Serial.println("Début");
+  MOTOR_SetSpeed(LEFT, 0);
+  MOTOR_SetSpeed(RIGHT, 0);
   delay(200);
-  tourner2Roue(45, 0);
-  delay(200);
-
-  jeChercheLaBalle();
-  jeParsLaChercher();
-  jeLaPrends();
 }
 
 void setup()
 {
   BoardInit();
-  pinMode(PIN_RIGHT, INPUT_PULLUP);
-  pinMode(PIN_LEFT, INPUT_PULLUP);
-  pinMode(PIN_MIDDLE, INPUT_PULLUP);
-  pinMode(PIN_DISTANCE, INPUT);
+  pinMode(53, OUTPUT);
+  pinMode(SPEAKER_PIN, OUTPUT);
+  music.speakerPin = SPEAKER_PIN;
 
-  SERVO_Enable(0);
-  SERVO_SetAngle(0, 80);
+  pinMode(22, OUTPUT);
+  pinMode(3, OUTPUT);
+  pinMode(2, OUTPUT);
+
+  pinMode(PIN_FOLLOWLINE, INPUT_PULLUP);
+  pinMode(PIN_DISTANCE, INPUT);
+  fermerBras();
 }
 
 void loop()
 {
-  if(ROBUS_IsBumper(LEFT))
-  {  
-    //Ok
-    delay(1000);
-    goGrabBall();
+  allumerled();
 
-    goToColor(1);
+  /*if (ROBUS_IsBumper(REAR)){
+    Move(1.0);
+    delay(500);
+    StopMove();
   }
+  if(ROBUS_IsBumper(LEFT)) {
 
-  if(ROBUS_IsBumper(RIGHT))
-  {  
-    //Rouge Ok
-    delay(1000);
-    goGrabBall();
-
-    goToColor(3);
   }
-
-  if(ROBUS_IsBumper(FRONT))
-  {  
-    //Vert Ok
-    delay(1000);
-    goGrabBall();
-
-    goToColor(0);
+  if(ROBUS_IsBumper(RIGHT)) {
+    
+    Serial.println("lol");
+    while(distanceBalle() > 15) {
+        allumerled();
+    }
+    ouvrirBras();
+    delay(500);
+    fermerBras();
   }
+  if(ROBUS_IsBumper(FRONT)) {
+    AX_BuzzerON(500, 1000);
+  }*/
 
-  if(ROBUS_IsBumper(REAR))
-  {  
-    //Jaune Ok
-    delay(1000);
-    goGrabBall();
+  if(ROBUS_IsBumper(RIGHT)) {
+    while(distanceBalle() > 15) {
+        allumerled();
+    }
+    allumerled();
+    ouvrirBras();
+    
+    allumerled();
+    fermerBras();
+    
+    allumerled();
+  }
+  if(ROBUS_IsBumper(LEFT)) {
+    Move(0.2);
+    allumerled();
+    while(IsWhiteLine() == 0) {
+      delay(200);
+      Serial.println(analogRead(PIN_FOLLOWLINE));
+    }
+    StopMove();
+  }
+  if(ROBUS_IsBumper(REAR)) {
 
-    goToColor(2);
+    Serial.println(analogRead(PIN_FOLLOWLINE));
+    delay(500);
   }
 }
